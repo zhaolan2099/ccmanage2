@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.sys.MenuMapper">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.sys.Menu">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="pid" jdbcType="BIGINT" property="pid" />
+    <result column="pids" jdbcType="VARCHAR" property="pids" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="permission" jdbcType="VARCHAR" property="permission" />
+    <result column="img" jdbcType="VARCHAR" property="img" />
+    <result column="seq" jdbcType="INTEGER" property="seq" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="temp1" jdbcType="VARCHAR" property="temp1" />
+    <result column="temp2" jdbcType="VARCHAR" property="temp2" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+    <result column="mt" jdbcType="TIMESTAMP" property="mt" />
+    <collection property="childList" column="id=id" javaType="java.util.List" select="selectList" />
+  </resultMap>
+  <resultMap id="forUsableMap" type="com.cc.manage.domain.sys.Menu">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="pid" jdbcType="BIGINT" property="pid" />
+    <result column="pids" jdbcType="VARCHAR" property="pids" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="permission" jdbcType="VARCHAR" property="permission" />
+    <result column="img" jdbcType="VARCHAR" property="img" />
+    <result column="seq" jdbcType="INTEGER" property="seq" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="temp1" jdbcType="VARCHAR" property="temp1" />
+    <result column="temp2" jdbcType="VARCHAR" property="temp2" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+    <result column="mt" jdbcType="TIMESTAMP" property="mt" />
+    <collection property="childList" column="id=id" javaType="java.util.List" select="selectListUsable" />
+  </resultMap>
+  <resultMap id="forUserMap" type="com.cc.manage.domain.sys.Menu">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="pid" jdbcType="BIGINT" property="pid" />
+    <result column="pids" jdbcType="VARCHAR" property="pids" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+    <result column="permission" jdbcType="VARCHAR" property="permission" />
+    <result column="img" jdbcType="VARCHAR" property="img" />
+    <result column="seq" jdbcType="INTEGER" property="seq" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="temp1" jdbcType="VARCHAR" property="temp1" />
+    <result column="temp2" jdbcType="VARCHAR" property="temp2" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+    <result column="mt" jdbcType="TIMESTAMP" property="mt" />
+    <collection property="childList" column="id=id,userId=userId" javaType="java.util.List"
+                select="selectListForUser" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, `name`, pid, pids, url, permission, img, seq, `status`, `level`, temp1, temp2, 
+    ct, mt
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from menu
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectList" resultMap="BaseResultMap">
+    select * from menu
+    where pid = #{id}
+    order by seq
+  </select>
+  <select id="selectListUsable" resultMap="forUsableMap">
+    select * from menu
+    where pid = #{id} and status = 1
+    order by seq
+  </select>
+  <select id="selectListForUser" resultMap="forUserMap">
+    <choose>
+      <when test="userId == 1">
+        select *,#{userId} as userId from menu
+        where pid = #{id} and status = 1
+        order by seq
+      </when>
+      <otherwise>
+        SELECT
+            a.*,#{userId} as userId
+        FROM
+          menu a,
+          user_role b,
+          role_menu c
+        WHERE
+         a.id = c.menu_id
+        AND a.pid = #{id}
+        AND b.role_id = c.role_id
+        AND b.user_id = #{userId}
+      </otherwise>
+    </choose>
+  </select>
+    <select id="selectByUserId" resultType="com.cc.manage.domain.sys.Menu">
+      SELECT
+          DISTINCT a.*
+      FROM
+          menu a,
+          user_role b,
+          role_menu c
+      WHERE
+          a.id = c.menu_id
+      AND b.role_id = c.role_id
+      AND b.user_id = #{userId}
+    </select>
+    <select id="selectByLevel" resultType="com.cc.manage.domain.sys.Menu">
+      select * from menu where `level` = #{level}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from menu
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="delete">
+      DELETE
+      FROM
+          menu
+      WHERE
+          FIND_IN_SET(#{id}, pids)
+      OR id = #{id}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Menu" useGeneratedKeys="true">
+    insert into menu (`name`, pid, pids, 
+      url, permission, img, 
+      seq, `status`, `level`, 
+      temp1, temp2, ct, 
+      mt)
+    values (#{name,jdbcType=VARCHAR}, #{pid,jdbcType=BIGINT}, #{pids,jdbcType=VARCHAR}, 
+      #{url,jdbcType=VARCHAR}, #{permission,jdbcType=VARCHAR}, #{img,jdbcType=VARCHAR}, 
+      #{seq,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{level,jdbcType=INTEGER}, 
+      #{temp1,jdbcType=VARCHAR}, #{temp2,jdbcType=VARCHAR}, #{ct,jdbcType=TIMESTAMP}, 
+      #{mt,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Menu" useGeneratedKeys="true">
+    insert into menu
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        `name`,
+      </if>
+      <if test="pid != null">
+        pid,
+      </if>
+      <if test="pids != null">
+        pids,
+      </if>
+      <if test="url != null">
+        url,
+      </if>
+      <if test="permission != null">
+        permission,
+      </if>
+      <if test="img != null">
+        img,
+      </if>
+      <if test="seq != null">
+        seq,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="level != null">
+        `level`,
+      </if>
+      <if test="temp1 != null">
+        temp1,
+      </if>
+      <if test="temp2 != null">
+        temp2,
+      </if>
+      <if test="ct != null">
+        ct,
+      </if>
+      <if test="mt != null">
+        mt,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null">
+        #{pid,jdbcType=BIGINT},
+      </if>
+      <if test="pids != null">
+        #{pids,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null">
+        #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null">
+        #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="seq != null">
+        #{seq,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="level != null">
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="temp1 != null">
+        #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="temp2 != null">
+        #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="ct != null">
+        #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mt != null">
+        #{mt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cc.manage.domain.sys.Menu">
+    update menu
+    <set>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null">
+        pid = #{pid,jdbcType=BIGINT},
+      </if>
+      <if test="pids != null">
+        pids = #{pids,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null">
+        permission = #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null">
+        img = #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="seq != null">
+        seq = #{seq,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="level != null">
+        `level` = #{level,jdbcType=INTEGER},
+      </if>
+      <if test="temp1 != null">
+        temp1 = #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="temp2 != null">
+        temp2 = #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="ct != null">
+        ct = #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mt != null">
+        mt = #{mt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cc.manage.domain.sys.Menu">
+    update menu
+    set `name` = #{name,jdbcType=VARCHAR},
+      pid = #{pid,jdbcType=BIGINT},
+      pids = #{pids,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      permission = #{permission,jdbcType=VARCHAR},
+      img = #{img,jdbcType=VARCHAR},
+      seq = #{seq,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      `level` = #{level,jdbcType=INTEGER},
+      temp1 = #{temp1,jdbcType=VARCHAR},
+      temp2 = #{temp2,jdbcType=VARCHAR},
+      ct = #{ct,jdbcType=TIMESTAMP},
+      mt = #{mt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

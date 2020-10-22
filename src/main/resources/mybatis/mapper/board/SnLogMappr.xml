@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.board.SnLogMappr">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.board.SnLog">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="mac" jdbcType="VARCHAR" property="mac" />
+    <result column="mcu" jdbcType="VARCHAR" property="mcu" />
+    <result column="sn" jdbcType="VARCHAR" property="sn" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, mac, mcu, sn, `status`, ct
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sn_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from sn_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.SnLog" useGeneratedKeys="true">
+    insert into sn_log (mac, mcu, sn, 
+      `status`, ct)
+    values (#{mac,jdbcType=VARCHAR}, #{mcu,jdbcType=VARCHAR}, #{sn,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{ct,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.SnLog" useGeneratedKeys="true">
+    insert into sn_log
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="mac != null">
+        mac,
+      </if>
+      <if test="mcu != null">
+        mcu,
+      </if>
+      <if test="sn != null">
+        sn,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="ct != null">
+        ct,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="mac != null">
+        #{mac,jdbcType=VARCHAR},
+      </if>
+      <if test="mcu != null">
+        #{mcu,jdbcType=VARCHAR},
+      </if>
+      <if test="sn != null">
+        #{sn,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="ct != null">
+        #{ct,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cc.manage.domain.board.SnLog">
+    update sn_log
+    <set>
+      <if test="mac != null">
+        mac = #{mac,jdbcType=VARCHAR},
+      </if>
+      <if test="mcu != null">
+        mcu = #{mcu,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="ct != null">
+        ct = #{ct,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where sn = #{sn}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cc.manage.domain.board.SnLog">
+    update sn_log
+    set mac = #{mac,jdbcType=VARCHAR},
+      mcu = #{mcu,jdbcType=VARCHAR},
+      sn = #{sn,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      ct = #{ct,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="get" resultMap="BaseResultMap">
+    select * from sn_log
+    <where>
+      <if test="mac != null and mac != ''">
+        and mac = #{mac}
+      </if>
+      <if test="mcu != null and mcu != ''">
+        and mcu = #{mcu}
+      </if>
+    </where>
+  </select>
+</mapper>

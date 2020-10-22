@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.board.BoardMapper">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.board.Board">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="sn" jdbcType="VARCHAR" property="sn" />
+    <result column="mac" jdbcType="VARCHAR" property="mac" />
+    <result column="mcu_id" jdbcType="VARCHAR" property="mcuId" />
+    <result column="board_type" jdbcType="VARCHAR" property="boardType" />
+    <result column="org_id" jdbcType="BIGINT" property="orgId" />
+    <result column="test_status" jdbcType="VARCHAR" property="testStatus" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_user" jdbcType="BIGINT" property="createUser" />
+    <result column="putin_time" jdbcType="TIMESTAMP" property="putinTime" />
+    <result column="putin_user" jdbcType="BIGINT" property="putinUser" />
+    <result column="out_time" jdbcType="TIMESTAMP" property="outTime" />
+    <result column="out_user" jdbcType="BIGINT" property="outUser" />
+    <result column="out_num" jdbcType="VARCHAR" property="outNum" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, sn, mac, mcu_id,board_type, org_id, test_status, create_time, create_user, putin_time,
+    putin_user,out_time,out_user,out_num
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from board
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from board
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="cancelOut">
+        update board set out_num = null ,out_user = null ,out_time = null,test_status = 2 where sn = #{sn}
+    </delete>
+    <delete id="cancelPutin">
+        update board set putin_num = null ,putin_user = null ,putin_time = null,test_status = 2 where sn = #{sn}
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
+    insert into board (sn, mac,mcu_id, board_type,
+      org_id, test_status, create_time, 
+      create_user, putin_time, putin_user,test_time,test_user
+      )
+    values (#{sn,jdbcType=VARCHAR}, #{mac,jdbcType=VARCHAR},#{mcuId}, #{boardType,jdbcType=VARCHAR},
+      #{orgId,jdbcType=BIGINT}, #{testStatus,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+      #{createUser,jdbcType=BIGINT}, #{putinTime,jdbcType=TIMESTAMP}, #{putinUser,jdbcType=BIGINT}
+      , #{testTime,jdbcType=TIMESTAMP}, #{testUser,jdbcType=BIGINT}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
+    insert into board
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sn != null">
+        sn,
+      </if>
+      <if test="mac != null">
+        mac,
+      </if>
+      <if test="boardType != null">
+        board_type,
+      </if>
+      <if test="orgId != null">
+        org_id,
+      </if>
+      <if test="testStatus != null">
+        test_status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createUser != null">
+        create_user,
+      </if>
+      <if test="putinTime != null">
+        putin_time,
+      </if>
+      <if test="putinUser != null">
+        putin_user,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sn != null">
+        #{sn,jdbcType=VARCHAR},
+      </if>
+      <if test="mac != null">
+        #{mac,jdbcType=VARCHAR},
+      </if>
+      <if test="boardType != null">
+        #{boardType,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null">
+        #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="testStatus != null">
+        #{testStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null">
+        #{createUser,jdbcType=BIGINT},
+      </if>
+      <if test="putinTime != null">
+        #{putinTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="putinUser != null">
+        #{putinUser,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+    <update id="update" parameterType="com.cc.manage.domain.board.Board">
+        update board
+        <set>
+            <if test="sn != null">
+                sn = #{sn,jdbcType=VARCHAR},
+            </if>
+            <if test="boardType != null">
+                board_type = #{boardType,jdbcType=VARCHAR},
+            </if>
+            <if test="orgId != null">
+                org_id = #{orgId,jdbcType=BIGINT},
+            </if>
+            <if test="testStatus != null">
+                test_status = #{testStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser,jdbcType=BIGINT},
+            </if>
+            <if test="testTime != null">
+                test_time = #{testTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="testUser != null">
+                test_user = #{testUser,jdbcType=BIGINT},
+            </if>
+            <if test="putinTime != null">
+                putin_time = #{putinTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="putinUser != null">
+                putin_user = #{putinUser,jdbcType=BIGINT},
+            </if>
+        </set>
+        <choose>
+            <when test="mcuId != null and mcuId != ''">
+                where mcu_id = #{mcuId}
+            </when>
+            <otherwise>
+                where mac = #{mac}
+            </otherwise>
+        </choose>
+    </update>
+    <update id="updateOut">
+        update board
+        <set>
+            <if test="testStatus != null">
+                test_status = #{testStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="outTime != null">
+                out_time = #{outTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outUser != null">
+                out_user = #{outUser,jdbcType=BIGINT},
+            </if>
+            <if test="outNum != null">
+                out_num = #{outNum,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <choose>
+            <when test="sn != null and sn != ''">
+                where sn = #{sn}
+            </when>
+            <otherwise>
+                where out_num = #{outNum}
+            </otherwise>
+        </choose>
+
+    </update>
+    <update id="updateBySn">
+        update board
+        <set>
+            <if test="boardType != null">
+                board_type = #{boardType,jdbcType=VARCHAR},
+            </if>
+            <if test="orgId != null">
+                org_id = #{orgId,jdbcType=BIGINT},
+            </if>
+            <if test="testStatus != null">
+                test_status = #{testStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createUser != null">
+                create_user = #{createUser,jdbcType=BIGINT},
+            </if>
+            <if test="testTime != null">
+                test_time = #{testTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="testUser != null">
+                test_user = #{testUser,jdbcType=BIGINT},
+            </if>
+            <if test="putinTime != null">
+                putin_time = #{putinTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="putinUser != null">
+                putin_user = #{putinUser,jdbcType=BIGINT},
+            </if>
+            <if test="outTime != null">
+                out_time = #{outTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outUser != null">
+                out_user = #{outUser,jdbcType=BIGINT},
+            </if>
+            <if test="outNum != null">
+                out_num = #{outNum,jdbcType=VARCHAR},
+            </if>
+            <if test="putinNum != null">
+                putin_num = #{putinNum,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where sn = #{sn,jdbcType=VARCHAR}
+    </update>
+    <update id="updatePutIn">
+        update board
+        <set>
+            <if test="testStatus != null">
+                test_status = #{testStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="putinTime != null">
+                putin_time = #{putinTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outUser != null">
+                putin_user = #{putinUser,jdbcType=BIGINT},
+            </if>
+            <if test="putinNum != null">
+                putin_num = #{putin_num,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where sn = #{sn}
+    </update>
+    <select id="get" resultMap="BaseResultMap">
+    select * from board
+    <where>
+        <if test="mac != null and mac != ''">
+            and mac =  #{mac}
+        </if>
+        <if test="mcuId != null and mcuId != ''">
+            and mcu_id = #{mcuId}
+        </if>
+    </where>
+  </select>
+    <select id="selectTotal" resultType="java.lang.Integer">
+        SELECT
+            count(1)
+        FROM
+            board a
+            LEFT JOIN org b ON a.org_id = b.id
+            LEFT JOIN USER c ON a.putin_user = c.id
+            LEFT JOIN USER d ON a.out_user = d.id
+            LEFT JOIN dict f on a.board_type = f.val and f.type_id = 1
+        <include refid="whereSql"/>
+    </select>
+    <select id="selectList" resultType="com.cc.manage.domain.board.Board">
+        SELECT
+            a.*, b. NAME AS orgName,
+            c.`name` AS putinUserName,
+            concat(b. NAME,'-',d. NAME) AS outUserName,
+            f.tag as boardTypeName
+        FROM
+            board a
+        LEFT JOIN org b ON a.org_id = b.id
+        LEFT JOIN USER c ON a.putin_user = c.id
+        LEFT JOIN USER d ON a.out_user = d.id
+        LEFT JOIN dict f on a.board_type = f.val and f.type_id = 1
+        <include refid="whereSql"/>
+        order by create_time,putin_time,out_time desc
+        <if test="pageHiden == false">
+            limit #{startIndex},#{pageSize}
+        </if>
+    </select>
+    <select id="getBySn" resultType="com.cc.manage.domain.board.Board">
+        SELECT
+            a.*, b.`name` AS orgName,d.`name` as outUserName,f.tag as boardTypeName
+        FROM
+            board a
+        LEFT JOIN org b ON a.org_id = b.id
+        LEFT JOIN USER d ON a.out_user = d.id
+        LEFT JOIN dict f ON a.board_type = f.val
+        AND f.type_id = 1 WHERE a.sn = #{sn}
+    </select>
+    <sql id="whereSql">
+        <where>
+            <if test="orgId != null">
+                and a.org_id = #{orgId}
+            </if>
+            <if test="orgName != null and orgName !=''">
+                and b.name like concat('%',#{orgName},'%')
+            </if>
+            <if test="outUserName != null and outUserName !=''">
+                and d.name like concat('%',#{outUserName},'%')
+            </if>
+            <if test="outTimeBegin != null and outTimeBegin !=''
+                and outTimeEnd != null and outTimeEnd !=''">
+                and a.out_time between concat(#{outTimeBegin},' 00:00:00')
+                and concat(#{outTimeEnd},' 23:59:59')
+            </if>
+            <if test="sn != null and sn !=''">
+                and a.sn like concat('%',#{sn},'%')
+            </if>
+            <if test="putInTimeBegin != null and putInTimeBegin !=''
+                and putInTimeEnd != null and putInTimeEnd !=''">
+                and a.putin_time between concat(#{putInTimeBegin},' 00:00:00')
+                and concat(#{putInTimeEnd},' 23:59:59')
+            </if>
+            <if test="testStatus != null and testStatus !=''">
+                and a.test_status =#{testStatus}
+            </if>
+            <if test="boardType != null and boardType !=''">
+                and a.board_type =#{boardType}
+            </if>
+            <if test="outNum != null and outNum !=''">
+                and a.out_num like concat('%',#{outNum},'%')
+            </if>
+            <choose>
+                <when test="type == 1">
+                    and a.test_status in (1,2)
+                </when>
+                <when test="type == 2">
+                    and a.test_status in (3,4)
+                </when>
+            </choose>
+        </where>
+    </sql>
+    <select id="selectListForOutExport" resultType="com.cc.manage.domain.board.BoardForOutExport">
+        SELECT
+            a.*, b. NAME AS orgName,
+            concat(b.name,'-',d. NAME) AS outUserName,
+            f.tag as boardTypeName
+        FROM
+         board a
+            LEFT JOIN org b ON a.org_id = b.id
+            LEFT JOIN USER d ON a.out_user = d.id
+            LEFT JOIN dict f on a.board_type = f.val and f.type_id = 1
+         where a.out_num = #{outNum}
+        order by create_time,putin_time,out_time desc
+    </select>
+    <select id="getOutingByOrgId" resultType="com.cc.manage.domain.board.Board">
+       SELECT
+            a.*, b.`name` AS orgName,d.`name` as outUserName,f.tag as boardTypeName
+        FROM
+            board a
+        LEFT JOIN org b ON a.org_id = b.id
+        LEFT JOIN USER d ON a.out_user = d.id
+        LEFT JOIN dict f ON a.board_type = f.val
+        AND f.type_id = 1
+        WHERE a.org_id = #{orgId} and a.test_status = 3
+    </select>
+    <delete id="delAll">
+        delete from board
+    </delete>
+</mapper>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.sys.OrgMapper">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.sys.Org">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="num" jdbcType="VARCHAR" property="num" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="contacts" jdbcType="VARCHAR" property="contacts" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="ip_address" jdbcType="VARCHAR" property="ipAddress" />
+    <result column="temp1" jdbcType="VARCHAR" property="temp1" />
+    <result column="temp2" jdbcType="VARCHAR" property="temp2" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+    <result column="mt" jdbcType="TIMESTAMP" property="mt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, `name`, num, address, contacts, phone, ip_address, temp1, temp2, ct, mt
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from org
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <sql id="whereSql">
+    <where>
+        and is_delete = 1
+      <if test="id != null">
+        and id = #{id}
+      </if>
+      <if test="orgId != null">
+        and id = #{orgId}
+      </if>
+      <if test="contacts != null and contacts != ''">
+        and contacts like concat('%',#{contacts},'%')
+      </if>
+    </where>
+  </sql>
+    <select id="selectTotal" resultType="java.lang.Integer">
+      select count(1) from org
+      <include refid="whereSql" />
+    </select>
+  <select id="selectList" resultType="com.cc.manage.domain.sys.Org">
+    select * from org
+   <include refid="whereSql" />
+   order by ct desc
+   <if test="pageHiden == false">
+     limit #{startIndex}, #{pageSize}
+   </if>
+  </select>
+  <select id="selectMaxId" resultType="java.lang.Long">
+    SELECT
+        AUTO_INCREMENT
+    FROM
+        INFORMATION_SCHEMA. TABLES
+    WHERE
+        TABLE_NAME = 'org' LIMIT 1
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from org
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Org" useGeneratedKeys="true">
+    insert into org (`name`, num, address, 
+      contacts, phone, ip_address, 
+      temp1, temp2, ct, 
+      mt)
+    values (#{name,jdbcType=VARCHAR}, #{num,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
+      #{contacts,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{ipAddress,jdbcType=VARCHAR}, 
+      #{temp1,jdbcType=VARCHAR}, #{temp2,jdbcType=VARCHAR}, #{ct,jdbcType=TIMESTAMP}, 
+      #{mt,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Org" useGeneratedKeys="true">
+    insert into org
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        `name`,
+      </if>
+      <if test="num != null">
+        num,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="contacts != null">
+        contacts,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="ipAddress != null">
+        ip_address,
+      </if>
+      <if test="temp1 != null">
+        temp1,
+      </if>
+      <if test="temp2 != null">
+        temp2,
+      </if>
+      <if test="ct != null">
+        ct,
+      </if>
+      <if test="mt != null">
+        mt,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null">
+        #{num,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="contacts != null">
+        #{contacts,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="ipAddress != null">
+        #{ipAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="temp1 != null">
+        #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="temp2 != null">
+        #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="ct != null">
+        #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mt != null">
+        #{mt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cc.manage.domain.sys.Org">
+    update org
+    <set>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null">
+        num = #{num,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="contacts != null">
+        contacts = #{contacts,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="ipAddress != null">
+        ip_address = #{ipAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="temp1 != null">
+        temp1 = #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="temp2 != null">
+        temp2 = #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="mt != null">
+        mt = #{mt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cc.manage.domain.sys.Org">
+    update org
+    set `name` = #{name,jdbcType=VARCHAR},
+      num = #{num,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      contacts = #{contacts,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      ip_address = #{ipAddress,jdbcType=VARCHAR},
+      temp1 = #{temp1,jdbcType=VARCHAR},
+      temp2 = #{temp2,jdbcType=VARCHAR},
+      ct = #{ct,jdbcType=TIMESTAMP},
+      mt = #{mt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <select id="checkOrg" resultType="com.cc.manage.domain.sys.Org">
+        select  * from org
+        <where>
+          <if test="id != null">
+            and id != #{id}
+          </if>
+          <if test="num != null and num != ''">
+            and num = #{num}
+          </if>
+          <if test="name != null and name != ''">
+            and name = #{name}
+          </if>
+        </where>
+    </select>
+</mapper>

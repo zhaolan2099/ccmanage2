@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.sys.UserMapper">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.sys.User">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="login_name" jdbcType="VARCHAR" property="loginName" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="pwd" jdbcType="VARCHAR" property="pwd" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="org_id" jdbcType="BIGINT" property="orgId" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
+    <result column="temp2" jdbcType="VARCHAR" property="temp2" />
+    <result column="temp1" jdbcType="VARCHAR" property="temp1" />
+    <result column="ct" jdbcType="TIMESTAMP" property="ct" />
+    <result column="mt" jdbcType="TIMESTAMP" property="mt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, login_name, `name`, pwd, phone, org_id, `status`, last_login_time, temp2, temp1, 
+    ct, mt
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from user
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <sql id="whereSql">
+    <where>
+      and a.is_delete = 1
+      <if test="orgId != null">
+        and b.id = #{orgId}
+      </if>
+      <if test="name != null and name != ''">
+        and a.name like concat('%',#{name},'%')
+      </if>
+    </where>
+  </sql>
+  <select id="selectTotal" resultType="java.lang.Integer">
+    SELECT
+        count(1)
+    FROM
+        USER a
+    LEFT JOIN org b ON a.org_id = b.id
+    <include refid="whereSql" />
+  </select>
+  <select id="selectList" resultType="com.cc.manage.domain.sys.User">
+     SELECT
+        *, b. NAME AS orgName
+    FROM
+      USER a
+    LEFT JOIN org b ON a.org_id = b.id
+    <include refid="whereSql" />
+    order  by a.ct desc
+    <if test="pageHiden == false">
+      limit #{startIndex}, #{pageSize}
+    </if>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from user
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteUserRoleByUserId">
+    delete  from user_role where user_id = #{userId}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.User" useGeneratedKeys="true">
+    insert into user (login_name, `name`, pwd, 
+      phone, org_id, `status`, 
+      last_login_time, temp2, temp1, 
+      ct, mt)
+    values (#{loginName,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{pwd,jdbcType=VARCHAR}, 
+      #{phone,jdbcType=VARCHAR}, #{orgId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, 
+      #{lastLoginTime,jdbcType=TIMESTAMP}, #{temp2,jdbcType=VARCHAR}, #{temp1,jdbcType=VARCHAR}, 
+      #{ct,jdbcType=TIMESTAMP}, #{mt,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.User" useGeneratedKeys="true">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="loginName != null">
+        login_name,
+      </if>
+      <if test="name != null">
+        `name`,
+      </if>
+      <if test="pwd != null">
+        pwd,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="orgId != null">
+        org_id,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="lastLoginTime != null">
+        last_login_time,
+      </if>
+      <if test="temp2 != null">
+        temp2,
+      </if>
+      <if test="temp1 != null">
+        temp1,
+      </if>
+      <if test="ct != null">
+        ct,
+      </if>
+      <if test="mt != null">
+        mt,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="loginName != null">
+        #{loginName,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pwd != null">
+        #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null">
+        #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="lastLoginTime != null">
+        #{lastLoginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="temp2 != null">
+        #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="temp1 != null">
+        #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="ct != null">
+        #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mt != null">
+        #{mt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cc.manage.domain.sys.User">
+    update user
+    <set>
+      <if test="loginName != null">
+        login_name = #{loginName,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pwd != null">
+        pwd = #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null">
+        org_id = #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="lastLoginTime != null">
+        last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="temp2 != null">
+        temp2 = #{temp2,jdbcType=VARCHAR},
+      </if>
+      <if test="temp1 != null">
+        temp1 = #{temp1,jdbcType=VARCHAR},
+      </if>
+      <if test="ct != null">
+        ct = #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="mt != null">
+        mt = #{mt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cc.manage.domain.sys.User">
+    update user
+    set login_name = #{loginName,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      pwd = #{pwd,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      org_id = #{orgId,jdbcType=BIGINT},
+      `status` = #{status,jdbcType=INTEGER},
+      last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+      temp2 = #{temp2,jdbcType=VARCHAR},
+      temp1 = #{temp1,jdbcType=VARCHAR},
+      ct = #{ct,jdbcType=TIMESTAMP},
+      mt = #{mt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="checkLoginName" resultType="int" parameterType="com.cc.manage.domain.sys.User">
+    select count(1) from user where login_name = #{loginName}
+    <if test="id != null">
+      and id  != id
+    </if>
+  </select>
+  <select id="getRoleByUserId" resultType="com.cc.manage.domain.sys.Role">
+    select a.* from role a,user_role b
+    where a.id = b.role_id and b.user_id = #{userId}
+  </select>
+  <select id="getUser" resultType="com.cc.manage.domain.sys.User" parameterType="com.cc.manage.domain.sys.User">
+     SELECT
+        a.*, b. NAME AS orgName,
+        b.ip_address AS ipAddress
+      FROM
+          user a
+      LEFT JOIN org b ON a.org_id = b.id
+      <where>
+        <if test="id != null">
+          and a.id = #{id}
+        </if>
+        <if test="loginName != null and loginName != ''">
+          and a.login_name = #{loginName}
+        </if>
+        <if test="pwd != null and pwd != ''">
+          and pwd = #{pwd}
+        </if>
+      </where>
+  </select>
+  <select id="getLoginUser" resultType="com.cc.manage.domain.sys.LoginUser" parameterType="com.cc.manage.domain.sys.User">
+    SELECT
+    a.*, b. NAME AS orgName,
+    b.num as orgNum,
+    b.ip_address AS ipAddress
+    FROM
+    user a
+    LEFT JOIN org b ON a.org_id = b.id
+    <where>
+      <if test="id != null">
+        and a.id = #{id}
+      </if>
+      <if test="loginName != null and loginName != ''">
+        and a.login_name = #{loginName}
+      </if>
+      <if test="pwd != null and pwd != ''">
+        and pwd = #{pwd}
+      </if>
+    </where>
+  </select>
+  <insert id="setUserRole">
+    insert into user_role values
+    <foreach collection="list" item="item" separator=",">
+     ( #{item.userId},#{item.roleId})
+    </foreach>
+  </insert>
+</mapper>

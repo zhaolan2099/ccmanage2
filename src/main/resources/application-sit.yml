@@ -1,0 +1,30 @@
+server:
+  port: 8081
+spring:
+  profiles: dev
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://127.0.0.1:3306/cc?useUnicode=true&characterEncoding=utf8&serverTimezone=CTT&useInformationSchema=true&allowMultiQueries=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+redis:
+  host: 192.168.2.21
+  port: 6379
+  password: 123456
+  database: 3
+  jedis:
+    pool:
+      #最大连接数
+      max-active: 1024
+      #最大阻塞等待时间(负数表示没限制)
+      max-wait: 20000
+      #最大空闲
+      max-idle: 200
+      #最小空闲
+      min-idle: 10
+  #连接超时时间
+  timeout: 10000
+# 公共配置
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+  config-location:  classpath:mybatis/config/mybatis-config.xml

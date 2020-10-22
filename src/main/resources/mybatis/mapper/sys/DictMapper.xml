@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cc.manage.dao.sys.DictMapper">
+  <resultMap id="BaseResultMap" type="com.cc.manage.domain.sys.Dict">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="val" jdbcType="VARCHAR" property="val" />
+    <result column="tag" jdbcType="VARCHAR" property="tag" />
+    <result column="type_id" jdbcType="VARCHAR" property="typeId" />
+    <result column="explain" jdbcType="VARCHAR" property="explain" />
+    <result column="sort" jdbcType="INTEGER" property="sort" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, val, tag, `type_id`, `explain`, sort
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from dict
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from dict
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Dict" useGeneratedKeys="true">
+    insert into dict (val, tag, `type_id`, 
+      `explain`, sort)
+    values (#{val,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, #{typeId,jdbcType=BIGINT},
+      #{explain,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.sys.Dict" useGeneratedKeys="true">
+    insert into dict
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="val != null">
+        val,
+      </if>
+      <if test="tag != null">
+        tag,
+      </if>
+      <if test="typeId != null">
+        `type_id`,
+      </if>
+      <if test="explain != null">
+        `explain`,
+      </if>
+      <if test="sort != null">
+        sort,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="val != null">
+        #{val,jdbcType=VARCHAR},
+      </if>
+      <if test="tag != null">
+        #{tag,jdbcType=VARCHAR},
+      </if>
+      <if test="typeId != null">
+        #{type_id,jdbcType=BIGINT},
+      </if>
+      <if test="explain != null">
+        #{explain,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null">
+        #{sort,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cc.manage.domain.sys.Dict">
+    update dict
+    <set>
+      <if test="val != null">
+        val = #{val,jdbcType=VARCHAR},
+      </if>
+      <if test="tag != null">
+        tag = #{tag,jdbcType=VARCHAR},
+      </if>
+      <if test="typeId != null">
+        `type_id` = #{typeId,jdbcType=BIGINT},
+      </if>
+      <if test="explain != null">
+        `explain` = #{explain,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null">
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cc.manage.domain.sys.Dict">
+    update dict
+    set val = #{val,jdbcType=VARCHAR},
+      tag = #{tag,jdbcType=VARCHAR},
+      `type_id` = #{typeId,jdbcType=BIGINT},
+      `explain` = #{explain,jdbcType=VARCHAR},
+      sort = #{sort,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectTotal" resultType="int">
+    SELECT count(1) from dict a LEFT JOIN dict_type b on a.type_id = b.id
+    <where>
+      <if test="tag != null and tag != ''">
+        and tag like concat('%',#{tag},'%')
+      </if>
+      <if test="typeId != null and typeId != ''">
+        and type_id = #{typeId}
+      </if>
+    </where>
+  </select>
+  <select id="selectList" resultMap="BaseResultMap">
+    SELECT a.*,b.type_name,b.type from dict a LEFT JOIN dict_type b on a.type_id = b.id
+    <where>
+      <if test="tag != null and tag != ''">
+        and tag like concat('%',#{tag},'%')
+      </if>
+      <if test="typeId != null and typeId != ''">
+        and type_id = #{typeId}
+      </if>
+    </where>
+    order by id desc
+    <if test="pageHiden == false">
+      limit #{startIndex},#{pageSize}
+    </if>
+  </select>
+    <select id="selectByType" resultType="com.cc.manage.domain.sys.Dict">
+      select * from dict where type_id = #{typeId}
+    </select>
+</mapper>

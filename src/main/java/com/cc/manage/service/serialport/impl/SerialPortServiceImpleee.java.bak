@@ -1,0 +1,312 @@
+package com.cc.manage.service.serialport.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.cc.manage.common.CodeMsg;
+import com.cc.manage.common.Constant;
+import com.cc.manage.common.Result;
+import com.cc.manage.domain.board.Board;
+import com.cc.manage.domain.sys.LoginUser;
+import com.cc.manage.exception.BizException;
+import com.cc.manage.service.board.BoardService;
+import com.cc.manage.service.serialport.SerialPortService;
+import com.cc.manage.utils.DateUtil;
+import com.cc.manage.utils.HttpUtils;
+import com.cc.manage.utils.RedisUtil;
+import com.cc.manage.utils.UserUtil;
+import com.cc.manage.websocket.WebSocketServer;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import redis.clients.jedis.Jedis;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Date;
+import java.util.Map;
+
+import static org.springframework.transaction.annotation.Propagation.REQUIRED;
+
+/**
+ * @author ：ZL
+ * @time ：Created in 2020/8/19 17:33
+ * @description：
+ */
+@Slf4j
+@Service
+public class SerialPortServiceImpleee implements SerialPortService {
+    @Resource
+    BoardService boardService;
+
+
+    @Override
+    public Result getPortNames() throws IOException, BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        if(user.getOrgId() == null){
+            throw new BizException(0,"只有厂商人员才可操作");
+        }
+        Subject subject = SecurityUtils.getSubject();
+//        String res = HttpUtils.httpGet("http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/getSPNames",
+//                (String) subject.getSession().getId());
+        String res = HttpUtils.httpGet(user.getIpAddress()+"/cc/sp/getSPNames",
+                (String) subject.getSession().getId());
+        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
+        log.info("获取通讯端串口名称，收到通讯端返回数据:{}",res);
+        return result;
+    }
+
+    @Override
+    public Result beginTest(String portName) throws IOException, BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        if(user.getOrgId() == null){
+            throw new BizException(0,"只有厂商人员才可操作");
+        }
+        if(user.getOrgId() == null){
+            throw new BizException(0,"只有厂商人员才可操作");
+        }
+        Subject subject = SecurityUtils.getSubject();
+//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/beginTest?portName="+portName;
+        String url = user.getIpAddress()+"/cc/sp/beginTest?portName="+portName;
+        String res = HttpUtils.httpGet(url, (String) subject.getSession().getId());
+        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
+        log.info("开始测试接口，收到通讯端返回数据:{}",res);
+        return result;
+    }
+
+    @Override
+    public Result beginScannerForPort(String portName) throws IOException, BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        Subject subject = SecurityUtils.getSubject();
+//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/beginScanner?portName="+portName;
+        String url = user.getIpAddress()+"/cc/sp/beginScanner?portName="+portName;
+        String res = HttpUtils.httpGet(url, (String) subject.getSession().getId());
+        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
+        log.info("打开扫码枪串口，收到通讯端返回数据:{}",res);
+        return result;
+    }
+
+    @Override
+    public Result beginScanner(String sn) throws IOException, BizException {
+        return null;
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class,propagation = REQUIRED)
+    public void parseTestResult(String msg) throws IOException, BizException {
+
+        //解析入库
+        JSONObject jsonObject;
+        try {
+            jsonObject= JSON.parseObject(msg);
+        }catch (Exception e){
+            throw new BizException(0,"JSON格式错误");
+        }
+
+        //收到第二台测试请求下发SN的指令
+        Object requestSn = jsonObject.get("Request_sn");
+        //下发SN后收到测试机返回结果
+        Object snWriteResult = jsonObject.get("SN_write_Result");
+        //Request_sn不为空，则是主板第二台测试机返回结果
+        if(requestSn == null){
+            if(snWriteResult == null){
+                String testResult = (String) jsonObject.get("test_result");
+                if(Constant.STATUS_SUCCESS.equals(testResult)){
+                    //处理测试结果
+                    handleTestResult(jsonObject);
+                }
+            }else{
+                //处理测试机接收SN请求返回结果
+                if(Constant.STATUS_SUCCESS.equals(snWriteResult)){
+                    this.handleSnResult(jsonObject);
+                }
+            }
+        }else{
+            //收到测试机下发SN请求
+            this.sendSn(jsonObject);
+
+        }
+    }
+
+
+    /**
+     * 如果是主板，不需要写入sn号，只需下发成功收到测试结果
+     * 如果是灯板，需写入sn号，
+     * @param jsonObject
+     */
+    private void handleTestResult (JSONObject jsonObject) throws BizException, IOException {
+        Map<String,String> snValue = null;
+        Board board = new Board();
+        String boardType = (String) jsonObject.get("board_type");
+        board.setBoardType(boardType);
+        String str;
+        //主板
+        if(boardType.equals(Constant.BOARD_TYPE_TYPE_A1)){
+            board.setMac((String) jsonObject.get("MAC_addr"));
+            Board fromDb = boardService.getByMac(board.getMac());
+            String boardSerial = (String) jsonObject.get("board_serial");
+            str = "{\"board_serial\":\""+boardSerial+"\",\"receive_success\":\"0\"}";
+            //如果数据库里有这条记录，且测试结果为已通过的,已经返回测试通过
+            if(fromDb != null && fromDb.getTestStatus().equals(Constant.TEST_STATUS_2)){
+                this.sendTestMes(str);
+                return;
+            }
+
+        }else{
+            String sn = (String) jsonObject.get("SN");
+            //如果有SN号，证明是多次测试
+            if(!StringUtils.isEmpty(sn)){
+                //直接下发测试成功指令
+                str = "{\"receive_success\":\"0\"}";
+                Result sendRes = this.sendTestMes(str);
+                if(sendRes.getCode() != 1){
+                    throw new BizException(0,"下发消息失败，消息内容：{"+str+"}");
+                }
+                return;
+            }
+            //灯板测试步骤只需要一步，立即生成SN
+            snValue = boardService.buildSn(board);
+            str =  "{\"SN_write\":\""+board.getSn()+"\"}";
+
+        }
+        String testStatus = (String) jsonObject.get("test_status");
+        board.setTestStatus(testStatus);
+        boardService.save(board);
+        //下发收到测试结果指令
+        Result sendRes = this.sendTestMes(str);
+        if(sendRes.getCode() != 1){
+            throw new BizException(0,"下发消息失败，消息内容：{"+str+"}");
+        }else{
+                //redis不能回滚，所以放在最外面处理
+            if(snValue != null){
+                Jedis jedis = RedisUtil.getJedis();
+                jedis.set(snValue.get("key"),snValue.get("value"));
+                jedis.close();
+            }
+        }
+    }
+
+    /**
+     * 处理主板第二步测试结果
+     * @param jsonObject
+     */
+    private void sendSn(JSONObject jsonObject) throws BizException, IOException {
+        String mac = (String) jsonObject.get("MAC_addr");
+        Board board = new Board();
+        Board fromDb = boardService.getByMac(mac);
+        if(fromDb ==  null){
+            throw new BizException(0,"不存在相关测试记录。");
+        }
+        Map<String,String> snValue = null;
+        //如果测试完成，将数据库里已有的sn发送到测试机
+        if(fromDb.getTestStatus().equals(Constant.TEST_STATUS_2)){
+            board.setSn(fromDb.getSn());
+        }else {
+            board.setBoardType(fromDb.getBoardType());
+            //收到串口请求，生成SN，并下发
+            snValue = boardService.buildSn(board);
+            board.setMac(mac);
+            boardService.save(board);
+        }
+
+        String str = "{\"SN_write\":\""+board.getSn()+"\"}";
+        Result sendRes = this.sendTestMes(str);
+        if(sendRes.getCode() != 1){
+            throw new BizException(0,"下发SN写入失败");
+        }else{
+            //redis不能回滚，所以放在最外面处理
+            if(snValue != null){
+                Jedis jedis = RedisUtil.getJedis();
+                jedis.set(snValue.get("key"),snValue.get("value"));
+                jedis.close();
+            }
+        }
+    }
+
+    /**
+     * 处理测试机返回的SN写入结果
+     * @param jsonObject
+     */
+    private void handleSnResult(JSONObject jsonObject) throws BizException, IOException {
+        Board board = new Board();
+        String result = (String) jsonObject.get("SN_write_Result");
+        if(!"0".equals(result)){
+            return;
+        }
+        String mac = (String) jsonObject.get("MAC_addr");
+        board.setTestStatus(Constant.TEST_STATUS_2);
+        if(!StringUtils.isEmpty(mac)){
+            Board temp = boardService.getByMac(mac);
+            if(!temp.getTestStatus().equals(Constant.TEST_STATUS_2)){
+                board.setMac(mac);
+                board.setBoardType(temp.getBoardType());
+                boardService.save(board);
+            }
+            //调用热敏打印机打印条形码
+            this.printBarcode(temp.getSn(),temp.getMac());
+        }
+        String str = "{\"receive_success\":\"0\"}";
+        Result sendRes = this.sendTestMes(str);
+        if(sendRes.getCode() != 1){
+            throw new BizException(0,"下发信息失败，消息内容{"+str+"}");
+        }
+
+    }
+    @Override
+    public void parseScannerResult(String msg) throws IOException, BizException {
+//        Subject subject = SecurityUtils.getSubject();
+//        //修改出库状态为出库中
+//        boardService.outIng(msg);
+//        //websocket推送到页面
+//        Board board =boardService.getBySn(msg);
+////        WebSocketServer.SendMessage(JSONObject.toJSONString(board), (String) subject.getSession().getId());
+//        WebSocketServer.BroadCastInfo(JSONObject.toJSONString(board));
+    }
+
+    @Override
+    public Result sendTestMes(String msg) throws IOException, BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        Subject subject = SecurityUtils.getSubject();
+//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/sendTestMes";
+        String url = user.getIpAddress()+"/cc/sp/sendTestMes";
+        String res = HttpUtils.httpPostWithJSON(url, msg,(String) subject.getSession().getId());
+        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
+        log.info("下发信息收到通讯端返回数据:{}",res);
+        return result;
+    }
+
+    private Result printBarcode(String sn,String mac) throws IOException, BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        Subject subject = SecurityUtils.getSubject();
+        //调用热敏打印机打印SN
+//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/print/printBarcode?sn="+sn+"&mac="+mac;
+        String url = user.getIpAddress()+"/cc/print/printBarcode?sn="+sn+"&mac="+mac;
+        String res = HttpUtils.httpGet(url,
+                (String) subject.getSession().getId());
+        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
+        log.info("获取通讯端串口名称，收到通讯端返回数据:{}",result);
+        if(result.getCode() != 1){
+            WebSocketServer.SendMessage(new Result<>().fail(new CodeMsg(0,"打印失败，请确认打印机是否正常连接")).toString(),
+                    (String) subject.getSession().getId());
+            throw new BizException(0,"打印失败，请确认打印机是否正常连接");
+        }
+        return result;
+    }
+
+
+    public static void main(String[] args) {
+        NumberFormat f = new DecimalFormat("00000");
+        DateUtil.formatDate(new Date(),"yyMM");
+        String sn = "B1"+DateUtil.formatDate(new Date(),"yyMM")+ f.format(1);
+        System.out.println(sn);
+        String x = "123456";
+//        String command = "QRCODE 290,272,L,8,A,180,M2,S3,\"123456\"";
+        String command = "QRCODE 290,272,L,8,A,180,M2,S3,\""+x+"\"";
+        System.out.printf(command);
+    }
+}
