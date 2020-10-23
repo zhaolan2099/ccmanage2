@@ -138,7 +138,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
-            return null;
+            throw new BizException(0,"测试失败");
         }
         if(!StringUtils.isEmpty(board.getMac())){
             msg.put(Constant.MAC_ADDR,board.getMac());
@@ -211,13 +211,16 @@ public class SerialPortServiceImpl implements SerialPortService {
     }
     private JSONObject handleWriteSNResult(JSONObject jsonObject) throws IOException, BizException {
         String snWriteResult = (String) jsonObject.get(Constant.SN_WRITE_RESULT);
+        JSONObject msg = new JSONObject();
         String mac = "";
         String mcuId = "";
-        if(jsonObject.get(MAC_ADDR) != null){
-            mac = (String) jsonObject.get(MAC_ADDR);
+        if(jsonObject.get(Constant.MAC_ADDR) != null){
+            mac = (String) jsonObject.get(Constant.MAC_ADDR);
+            msg.put(Constant.MAC_ADDR,mac);
         }
-        if(jsonObject.get(MCU_ID) != null){
-            mcuId = (String) jsonObject.get(MCU_ID);
+        if(jsonObject.get(Constant.MCU_ID) != null){
+            mcuId = (String) jsonObject.get(Constant.MCU_ID);
+            msg.put(Constant.MCU_ID,mcuId);
         }
         SnLog query = new SnLog();
         query.setMac(mac);
@@ -231,7 +234,7 @@ public class SerialPortServiceImpl implements SerialPortService {
             //SN写入失败
             snLogDb.setStatus(Constant.SN_WRITE_RES_0);
             snLogMappr.updateByPrimaryKeySelective(snLogDb);
-            return null;
+            throw new BizException(0,"SN写入失败");
         }
         //SN写入成功
         snLogDb.setStatus(Constant.SN_WRITE_RES_1);
@@ -246,7 +249,8 @@ public class SerialPortServiceImpl implements SerialPortService {
             board.setMcuId(mcuId);
         }
         boardService.updateByTest(board);
-        return null;
+        msg.put(Constant.RESULT,"0");
+        return msg;
     }
 
     @Override
