@@ -222,4 +222,53 @@ public class UserController {
         }
         return result;
     }
+
+    @PostMapping(value = "/clientLogin")
+    @ApiOperation("客户端登录")
+    public String clientLogin(@RequestBody LoginUser user) {
+        JSONObject jsonObject = new JSONObject();
+        UsernamePasswordToken token = new UsernamePasswordToken(user.getLoginName(), user.getPwd());
+        Subject subject = SecurityUtils.getSubject();
+        if(StringUtils.isEmpty(user.getLoginName())){
+            jsonObject.put("code", 0);
+            jsonObject.put("msg", "重新登录");
+            return jsonObject.toString();
+        }
+
+        try {
+            subject.login(token);
+            LoginUser loginUser = (LoginUser)subject.getSession().getAttribute("USER_SESSION");
+            if(loginUser.getMenuIds() != null && loginUser.getMenuIds().size() > 0){
+                jsonObject.put("token", subject.getSession().getId());
+                jsonObject.put("msg", "登录成功");
+                jsonObject.put("code",1);
+            }else{
+                jsonObject.put("msg", "该用户没有分配任何角色，请先分配角色再登录系统！");
+                jsonObject.put("code", 0);
+            }
+        }catch (RedisServerException e) {
+            jsonObject.put("msg", "无法连接redis..");
+            jsonObject.put("code", "0");
+        } catch (IncorrectCredentialsException e) {
+            jsonObject.put("msg", "密码错误");
+            jsonObject.put("code", 0);
+        } catch (LockedAccountException e) {
+            jsonObject.put("msg", "登录失败，该用户已被冻结");
+            jsonObject.put("code", 0);
+        } catch (ExcessiveAttemptsException e){
+            jsonObject.put("code",0);
+            jsonObject.put("msg", "该账号多次登录未成功，请5分钟后再试");
+        } catch (AuthenticationException e) {
+            if(StringUtils.isEmpty(user.getLoginName())){
+                jsonObject.put("code", 0);
+                jsonObject.put("msg", "重新登录");
+            }else{
+                jsonObject.put("code", 0);
+                jsonObject.put("msg", "该用户不存在");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
+    }
 }

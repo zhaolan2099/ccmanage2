@@ -33,21 +33,23 @@ public class SerialPortController {
     SerialPortService serialPortService;
 
     /**
-     * 接收串口发送的测试信息
+     * 接收客户端发送的信息
      * @param msg 消息内容
      */
-    @PostMapping(value = "receiveTestMsg")
-    public void receiveTestMsg(@RequestBody String msg){
-        log.info("收到通讯端测试串口发送的数据,{}",msg);
+    @PostMapping(value = "receiveMsg")
+    public Result receiveMsg(@RequestBody String msg){
+        log.info("收到客户端发送的数据,{}",msg);
         Subject subject = SecurityUtils.getSubject();
         Result result = new Result();
+        JSONObject jsonObject = new JSONObject();
+        CodeMsg codeMsg = CodeMsg.SUCCESS;
         try {
-            serialPortService.parseTestResult(msg);
+            jsonObject = serialPortService.parseTestResult(msg);
             result = result.success();
             WebSocketServer.SendMessage(JSON.toJSONString(result), (String) subject.getSession().getId());
         }  catch (IOException e) {
             e.printStackTrace();
-            log.info("处理测试数据，业务异常:{}",CodeMsg.NO_PORT_SERVICE.toString());
+            log.info("处理数据，业务异常:{}",CodeMsg.NO_PORT_SERVICE.toString());
         }catch (BizException e){
             e.printStackTrace();
             try {
@@ -59,36 +61,14 @@ public class SerialPortController {
                 log.error("wehbsocket未连接");
                 ex.printStackTrace();
             }
-            log.info("处理测试数据，业务异常:{}",e.getCodeMsg());
+            log.info("处理数据，业务异常:{}",e.getCodeMsg());
+            codeMsg = e.getCodeMsg();
         }catch (Exception e){
             e.printStackTrace();
-            log.info("处理测试数据，系统异常:{}",e.getMessage());
+            log.info("处理数据，系统异常:{}",e.getMessage());
+            codeMsg = CodeMsg.SERVER_ERROR;
         }
-
-    }
-    @PostMapping(value = "beginScanner")
-    @ApiOperation("打开扫码枪串口")
-    @ApiModelProperty(value = "串口名称")
-    public Result beginScanner(String portName){
-        log.info("打开扫码枪串口,请求参数:{}",portName);
-        Result result = new Result();
-        try {
-            result= serialPortService.beginScanner(portName);
-        }catch (IOException e){
-            e.printStackTrace();
-            result = result.fail(CodeMsg.NO_PORT_SERVICE);
-            log.info("打开扫码枪串口，业务异常:{}",result.toString());
-        }catch (BizException e){
-            e.printStackTrace();
-            result = result.fail(e.getCodeMsg());
-            log.info("打开扫码枪串口，业务异常:{}",result.toString());
-        }catch (Exception e){
-            e.printStackTrace();
-            result = result.fail(CodeMsg.SERVER_ERROR);
-            log.info("打开扫码枪串口，系统异常:{}",e.getMessage(),e);
-        }
-        log.info("打开扫码枪串口，响应参数:{}",result.toString());
-        return result;
+        return new Result(codeMsg,jsonObject);
     }
 
 }

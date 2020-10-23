@@ -1,7 +1,10 @@
 package com.cc.manage.service.serialport;
 
+import com.alibaba.fastjson.JSONObject;
 import com.cc.manage.common.Result;
 import com.cc.manage.exception.BizException;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.IOException;
 
 /**
@@ -28,7 +31,7 @@ public interface SerialPortService {
      * 处理测试逻辑
      * @param testResult
      */
-    void parseTestResult(String testResult) throws IOException, BizException;
+    JSONObject parseTestResult(String testResult) throws IOException, BizException;
 
     /**
      * 下发MSG

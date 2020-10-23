@@ -12,7 +12,7 @@ EE003F7b22546573745f53746570223a22322e31222c22426f6172645f54797065223a224131222c
 { "Test_Step": "2.1", "Board_Type": "A1", "MCU_ID": "000000000000" }
 EE003D7b22546573745f53746570223a22322e31222c22426f6172645f54797065223a224131222c224d43555f4944223a22303030303030303030303030227dFFFCFFFF
 
-
+{"Test_Step":"2.2","MAC_Addr":"000000000000","SN_Write_Result":"0","SN_Write_Result":"0"}
 {"Test_Step":"2.2","MAC_Addr":"000000000000","SN_Write_Result":"0","SN_Write_Result":"0","Print":"0","qrcodeMsg":"1","barcodeMsg":"1",
 "setupWidth":"100","setupHeight":"25","barcodeParamsList":[{"x":"324","y":"96","height":"50","narrow":"2","wide":"5"},{"x":"698","y":"96","height":"50","narrow":"2","wide":"5"},{"x":"1078","y":"96","height":"50","narrow":"2","wide":"5"}],"qrcodeParamsList":[{"x":"290","y":"272","cellWidth":"8"},{"x":"664","y":"272","cellWidth":"8"},{"x":"1044","y":"272","cellWidth":"8"}]}
 

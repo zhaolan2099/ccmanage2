@@ -98,7 +98,7 @@ public class SerialPortServiceImpl implements SerialPortService {
 
     @Override
     @Transactional(rollbackFor = Exception.class,propagation = REQUIRED)
-    public void parseTestResult(String msg) throws IOException, BizException {
+    public JSONObject parseTestResult(String msg) throws IOException, BizException {
 
         //解析入库
         JSONObject jsonObject;
@@ -113,20 +113,18 @@ public class SerialPortServiceImpl implements SerialPortService {
         }
         switch (step){
             case Constant.TEST_STEP_BEGIN_TEST:
-                handleTest(jsonObject);
-                break;
+                return handleTest(jsonObject);
             case Constant.TEST_STEP_WRITE_SN:
-                handleWriteSN(jsonObject);
-                break;
+                return handleWriteSN(jsonObject);
             case Constant.TEST_STEP_WRITE_SN_RESULT:
-                handleWriteSNResult(jsonObject);
-                break;
+                return handleWriteSNResult(jsonObject);
             default:
                 break;
         }
+        return null;
     }
 
-    private void handleTest(JSONObject jsonObject) throws BizException, IOException {
+    private JSONObject handleTest(JSONObject jsonObject) throws BizException, IOException {
         Board board = new Board();
         String boardType = (String) jsonObject.get(Constant.BOARD_TYPE);
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
@@ -140,7 +138,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
-            return;
+            return null;
         }
         if(!StringUtils.isEmpty(board.getMac())){
             msg.put(Constant.MAC_ADDR,board.getMac());
@@ -150,16 +148,14 @@ public class SerialPortServiceImpl implements SerialPortService {
         }
         if(fromDb != null){
             msg.put(Constant.RESULT,"1");
-            this.sendMsg(JSONObject.toJSONString(msg));
         }else {
             msg.put(Constant.RESULT,"0");
             board.setTestStatus(Constant.STATUS_1);
             boardService.save(board);
-            this.sendMsg(JSONObject.toJSONString(msg));
         }
-
+        return msg;
     }
-    private void handleWriteSN(JSONObject jsonObject) throws BizException, IOException {
+    private JSONObject handleWriteSN(JSONObject jsonObject) throws BizException, IOException {
         Board board = new Board();
         JSONObject msg = new JSONObject();
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
@@ -175,54 +171,46 @@ public class SerialPortServiceImpl implements SerialPortService {
             log.info("mac: "+ board.getMac() + "_mcu：" + board.getMcuId()+"，没有相关测试记录");
             msg.put(Constant.RESULT,"2");
             msg.put(Constant.SN_WRITE,board.getSn()); //下发收到测试结果指令
-            this.sendMsg(JSONObject.toJSONString(msg));
+            return msg;
+        }
+        Map<String,String> snValue = null;
+        //如果测试完成，将数据库里已有的sn发送到测试机
+        if(fromDb.getTestStatus().equals(Constant.STATUS_2)){
+            msg.put(Constant.RESULT,"1");
+            board.setSn(fromDb.getSn());
         }else {
-            Map<String,String> snValue = null;
-            //如果测试完成，将数据库里已有的sn发送到测试机
-            if(fromDb.getTestStatus().equals(Constant.STATUS_2)){
-                msg.put(Constant.RESULT,"1");
-                board.setSn(fromDb.getSn());
+            msg.put(Constant.RESULT,"0");
+            board.setBoardType(fromDb.getBoardType());
+            //收到串口请求，生成SN，并下发
+            SnLog snLog = new SnLog();
+            snLog.setMcu(board.getMcuId());
+            snLog.setMac(board.getMac());
+            SnLog snLogDb = snLogMappr.get(snLog);
+            //如果在日志里查找相关记录，证明之前写入失败了，现在仍然用之前的SN号
+            if(snLogDb == null){
+                snValue = boardService.buildSn(board);
             }else {
-                msg.put(Constant.RESULT,"0");
-                board.setBoardType(fromDb.getBoardType());
-                //收到串口请求，生成SN，并下发
-                SnLog snLog = new SnLog();
-                snLog.setMcu(board.getMcuId());
-                snLog.setMac(board.getMac());
-                SnLog snLogDb = snLogMappr.get(snLog);
-                //如果在日志里查找相关记录，证明之前写入失败了，现在仍然用之前的SN号
-                if(snLogDb == null){
-                    snValue = boardService.buildSn(board);
-                }else {
-                    board.setSn(snLogDb.getSn());
-                }
-
-            }
-            msg.put(Constant.SN_WRITE,board.getSn()); //下发收到测试结果指令
-            Result sendRes = this.sendMsg(JSONObject.toJSONString(msg));
-            if(sendRes.getCode() != 1){
-                throw new BizException(0,"下发消息失败，消息内容：{"+JSONObject.toJSONString(msg)+"}");
-            }else{
-                //redis不能回滚，所以放在最外面处理
-                if(snValue != null){
-                    //记录SN使用日志
-                    SnLog snLog = new SnLog();
-                    snLog.setMac(board.getMac());
-                    snLog.setMcu(board.getMcuId());
-                    snLog.setCt(new Date());
-                    snLog.setSn(board.getSn());
-                    snLog.setStatus(Constant.SN_WRITE_RES_2);
-                    snLogMappr.insertSelective(snLog);
-                    Jedis jedis = RedisUtil.getJedis();
-                    jedis.set(snValue.get("key"),snValue.get("value"));
-                    jedis.close();
-                }
+                board.setSn(snLogDb.getSn());
             }
         }
+        msg.put(Constant.SN_WRITE,board.getSn()); //下发收到测试结果指令
+        if(snValue != null){
+            //记录SN使用日志
+            SnLog snLog = new SnLog();
+            snLog.setMac(board.getMac());
+            snLog.setMcu(board.getMcuId());
+            snLog.setCt(new Date());
+            snLog.setSn(board.getSn());
+            snLog.setStatus(Constant.SN_WRITE_RES_2);
+            snLogMappr.insertSelective(snLog);
+            Jedis jedis = RedisUtil.getJedis();
+            jedis.set(snValue.get("key"),snValue.get("value"));
+            jedis.close();
+        }
+        return msg;
     }
-    private void handleWriteSNResult(JSONObject jsonObject) throws IOException, BizException {
+    private JSONObject handleWriteSNResult(JSONObject jsonObject) throws IOException, BizException {
         String snWriteResult = (String) jsonObject.get(Constant.SN_WRITE_RESULT);
-        String print = (String) jsonObject.get(Constant.PRINT);
         String mac = "";
         String mcuId = "";
         if(jsonObject.get(MAC_ADDR) != null){
@@ -236,14 +224,14 @@ public class SerialPortServiceImpl implements SerialPortService {
         query.setMcu(mcuId);
         SnLog snLogDb = snLogMappr.get(query);
         if(snLogDb == null){
-            throw  new BizException(0,"未找到生成的SN记录");
+            throw  new BizException(0,"未找到生成的SN记录,请严格按照步骤测试。");
         }
 
         if(!snWriteResult.equals(Constant.SUCCESS)){
             //SN写入失败
             snLogDb.setStatus(Constant.SN_WRITE_RES_0);
             snLogMappr.updateByPrimaryKeySelective(snLogDb);
-            return;
+            return null;
         }
         //SN写入成功
         snLogDb.setStatus(Constant.SN_WRITE_RES_1);
@@ -258,11 +246,7 @@ public class SerialPortServiceImpl implements SerialPortService {
             board.setMcuId(mcuId);
         }
         boardService.updateByTest(board);
-        if(!print.equals(Constant.SUCCESS)){
-            return;
-        }
-        PrintParams printParams = JSONObject.toJavaObject(jsonObject,PrintParams.class);
-        this.printBarcode(printParams);
+        return null;
     }
 
     @Override
