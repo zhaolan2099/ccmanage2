@@ -242,6 +242,7 @@ public class UserController {
             if(loginUser.getMenuIds() != null && loginUser.getMenuIds().size() > 0){
                 jsonObject.put("token", subject.getSession().getId());
                 jsonObject.put("msg", "登录成功。");
+                jsonObject.put("name", loginUser.getName());
                 jsonObject.put("code",1);
             }else{
                 jsonObject.put("msg", "no roles");
