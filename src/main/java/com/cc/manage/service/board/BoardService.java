@@ -26,45 +26,15 @@ public interface BoardService {
     List<Board> selectList(BoardQuery query) throws BizException;
     List<BoardForOutExport> selectListForOutExport(String outNum);
     PageVo<Board> selectListForPage(BoardQuery query) throws BizException;
-    /**
-     * 修改出库状态为出库中
-     * @param sn
-     * @throws BizException
-     */
-    void outIng(String sn) throws BizException;
-    /**
-     * 根据SN号出库
-     * @param sns
-     * @throws BizException
-     */
-    Map<String,String>  doOut(List<String> sns) throws BizException;
 
 
-    /**
-     * 取消出库
-     * @param sn
-     */
-    void cancelOut(List<String> sn);
 
 
 
     Board getBySn(String sn);
 
-    /**
-     * 根据SN号获取电路板对象，用于出库
-     * @param sn
-     * @return
-     * @throws BizException
-     */
-    Board getBySnForOut(String sn)throws BizException;
 
-    /**
-     * 每个月从1开始 每类板子序号连续
-     * @param board
-     * @return
-     * @throws BizException
-     */
-    Map<String,String> buildSn(Board board) throws BizException;
+
 
     /**
      * 厂家编码+年（后两位）+月+批次（两位）

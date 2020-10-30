@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class BoardQuery extends BaseQuery {
 
+    private Long id;
     @ApiModelProperty(value = "厂商Id")
     private Long orgId;
     private String orgName;

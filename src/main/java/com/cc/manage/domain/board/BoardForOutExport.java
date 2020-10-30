@@ -41,8 +41,8 @@ public class BoardForOutExport implements Serializable {
     /**
      * 测试状态1测试中2已入库3出库中4已出库
      */
-    @Excel(name = "电路板状态",width = 14,replace = {"测试中_1","已入库_2","出库中_3","已出库_4"})
-    @ApiModelProperty(value = "测试状态1测试中2已入库3出库中4已出库")
+    @Excel(name = "电路板状态",width = 14,replace = {"测试完成_1","序列号已写入_2","入库中_3","已入库_4","已出库_5"})
+    @ApiModelProperty(value = "1测试完成2序列号已写入3入库中4已入库5已出库")
     private String testStatus;
 
     @Excel(name = "出库人员",width = 12)

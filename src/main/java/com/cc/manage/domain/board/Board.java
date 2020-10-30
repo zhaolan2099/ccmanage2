@@ -107,7 +107,7 @@ public class Board implements Serializable {
     private Date outTime;
 
     @ApiModelProperty(value = "入库编号")
-    private String putin_num;
+    private String putinNum;
     /**
      * 出库人
      */

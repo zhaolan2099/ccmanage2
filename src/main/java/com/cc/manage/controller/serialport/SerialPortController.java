@@ -8,15 +8,12 @@ import com.cc.manage.exception.BizException;
 import com.cc.manage.service.serialport.SerialPortService;
 import com.cc.manage.websocket.WebSocketServer;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.websocket.Session;
 import java.io.IOException;
 
 /**
@@ -47,20 +44,11 @@ public class SerialPortController {
             jsonObject = serialPortService.parseTestResult(msg);
             result = result.success();
             WebSocketServer.SendMessage(JSON.toJSONString(result), (String) subject.getSession().getId());
-        }  catch (IOException e) {
-            e.printStackTrace();
-            log.info("处理数据，业务异常:{}",CodeMsg.NO_PORT_SERVICE.toString());
         }catch (BizException e){
             e.printStackTrace();
-            try {
-                result = result.fail(e.getCodeMsg());
-                WebSocketServer.SendMessage(JSON.toJSONString(result),
-                        (String) subject.getSession().getId());
-//                WebSocketServer.BroadCastInfo(JSON.toJSONString(result));
-            } catch (IOException ex) {
-                log.error("wehbsocket未连接");
-                ex.printStackTrace();
-            }
+            result = result.fail(e.getCodeMsg());
+            WebSocketServer.SendMessage(JSON.toJSONString(result),
+                    (String) subject.getSession().getId());
             log.info("处理数据，业务异常:{}",e.getCodeMsg());
             codeMsg = e.getCodeMsg();
         }catch (Exception e){

@@ -15,6 +15,7 @@ import com.cc.manage.domain.print.PrintParams;
 import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.service.board.BoardService;
+import com.cc.manage.service.board.BoardTestService;
 import com.cc.manage.service.serialport.SerialPortService;
 import com.cc.manage.utils.DateUtil;
 import com.cc.manage.utils.HttpUtils;
@@ -55,57 +56,20 @@ public class SerialPortServiceImpl implements SerialPortService {
     BoardMapper boardMapper;
     @Resource
     SnLogMappr snLogMappr;
-    @Override
-    public Result getPortNames() throws IOException, BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        if(user.getOrgId() == null){
-            throw new BizException(0,"只有厂商人员才可操作");
-        }
-        Subject subject = SecurityUtils.getSubject();
-//        String res = HttpUtils.httpGet("http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/getSPNames",
-//                (String) subject.getSession().getId());
-        String res = HttpUtils.httpGet(user.getIpAddress()+"/cc/sp/getSPNames",
-                (String) subject.getSession().getId());
-        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
-        log.info("获取通讯端串口名称，收到通讯端返回数据:{}",res);
-        return result;
-    }
-
-    @Override
-    public Result beginTest(String portName) throws IOException, BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        if(user.getOrgId() == null){
-            throw new BizException(0,"只有厂商人员才可操作");
-        }
-        if(user.getOrgId() == null){
-            throw new BizException(0,"只有厂商人员才可操作");
-        }
-        Subject subject = SecurityUtils.getSubject();
-//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/sp/beginTest?portName="+portName;
-        String url = user.getIpAddress()+"/cc/sp/beginTest?portName="+portName;
-        String res = HttpUtils.httpGet(url, (String) subject.getSession().getId());
-        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
-        log.info("开始测试接口，收到通讯端返回数据:{}",res);
-        return result;
-    }
-
-
-    @Override
-    public Result beginScanner(String sn) throws IOException, BizException {
-        return null;
-    }
+    @Resource
+    BoardTestService boardTestService;
 
 
     @Override
     @Transactional(rollbackFor = Exception.class,propagation = REQUIRED)
-    public JSONObject parseTestResult(String msg) throws IOException, BizException {
+    public JSONObject parseTestResult(String msg) throws BizException {
 
         //解析入库
         JSONObject jsonObject;
         try {
             jsonObject= JSON.parseObject(msg);
         }catch (Exception e){
-            throw new BizException(0,"JSON格式错误");
+            throw new BizException(0,"JSON format error");
         }
         String step = "";
         if(jsonObject.get(Constant.TEST_STEP) != null){
@@ -119,12 +83,11 @@ public class SerialPortServiceImpl implements SerialPortService {
             case Constant.TEST_STEP_WRITE_SN_RESULT:
                 return handleWriteSNResult(jsonObject);
             default:
-                break;
+                throw new BizException(0,"The request parameter is incorrect");
         }
-        return null;
     }
 
-    private JSONObject handleTest(JSONObject jsonObject) throws BizException, IOException {
+    private JSONObject handleTest(JSONObject jsonObject) throws BizException{
         Board board = new Board();
         String boardType = (String) jsonObject.get(Constant.BOARD_TYPE);
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
@@ -138,7 +101,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
-            throw new BizException(0,"测试失败");
+            throw new BizException(0,"test error");
         }
         if(!StringUtils.isEmpty(board.getMac())){
             msg.put(Constant.MAC_ADDR,board.getMac());
@@ -155,7 +118,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         }
         return msg;
     }
-    private JSONObject handleWriteSN(JSONObject jsonObject) throws BizException, IOException {
+    private JSONObject handleWriteSN(JSONObject jsonObject) throws BizException {
         Board board = new Board();
         JSONObject msg = new JSONObject();
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
@@ -188,7 +151,7 @@ public class SerialPortServiceImpl implements SerialPortService {
             SnLog snLogDb = snLogMappr.get(snLog);
             //如果在日志里查找相关记录，证明之前写入失败了，现在仍然用之前的SN号
             if(snLogDb == null){
-                snValue = boardService.buildSn(board);
+                snValue = boardTestService.buildSn(board);
             }else {
                 board.setSn(snLogDb.getSn());
             }
@@ -203,13 +166,11 @@ public class SerialPortServiceImpl implements SerialPortService {
             snLog.setSn(board.getSn());
             snLog.setStatus(Constant.SN_WRITE_RES_2);
             snLogMappr.insertSelective(snLog);
-            Jedis jedis = RedisUtil.getJedis();
-            jedis.set(snValue.get("key"),snValue.get("value"));
-            jedis.close();
+            RedisUtil.set(snValue.get("key"),snValue.get("value"));
         }
         return msg;
     }
-    private JSONObject handleWriteSNResult(JSONObject jsonObject) throws IOException, BizException {
+    private JSONObject handleWriteSNResult(JSONObject jsonObject) throws BizException {
         String snWriteResult = (String) jsonObject.get(Constant.SN_WRITE_RESULT);
         JSONObject msg = new JSONObject();
         String mac = "";
@@ -227,14 +188,14 @@ public class SerialPortServiceImpl implements SerialPortService {
         query.setMcu(mcuId);
         SnLog snLogDb = snLogMappr.get(query);
         if(snLogDb == null){
-            throw  new BizException(0,"未找到生成的SN记录,请严格按照步骤测试。");
+            throw  new BizException(0,"no sn record");
         }
 
         if(!snWriteResult.equals(Constant.SUCCESS)){
             //SN写入失败
             snLogDb.setStatus(Constant.SN_WRITE_RES_0);
             snLogMappr.updateByPrimaryKeySelective(snLogDb);
-            throw new BizException(0,"SN写入失败");
+            throw new BizException(0,"SN write faild");
         }
         //SN写入成功
         snLogDb.setStatus(Constant.SN_WRITE_RES_1);
@@ -251,64 +212,5 @@ public class SerialPortServiceImpl implements SerialPortService {
         boardService.updateByTest(board);
         msg.put(Constant.RESULT,"0");
         return msg;
-    }
-
-    @Override
-    public Result sendMsg(String msg) throws IOException, BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        Subject subject = SecurityUtils.getSubject();
-        String url = user.getIpAddress()+"/cc/sp/sendMsg";
-        String res = HttpUtils.httpPostWithJSON(url, msg,(String) subject.getSession().getId());
-        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
-        log.info("下发信息,{}",msg);
-        log.info("下发信息收到通讯端返回数据:{}",res);
-        return result;
-    }
-
-    private Result printBarcodeOld(String sn,String mac) throws IOException, BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        Subject subject = SecurityUtils.getSubject();
-        //调用热敏打印机打印SN
-//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/print/printBarcode?sn="+sn+"&mac="+mac;
-        String url = user.getIpAddress()+"/cc/print/printBarcode?sn="+sn+"&mac="+mac;
-        String res = HttpUtils.httpGet(url,
-                (String) subject.getSession().getId());
-        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
-        log.info("获取通讯端串口名称，收到通讯端返回数据:{}",result);
-        if(result.getCode() != 1){
-            WebSocketServer.SendMessage(new Result<>().fail(new CodeMsg(0,"打印失败，请确认打印机是否正常连接")).toString(),
-                    (String) subject.getSession().getId());
-            throw new BizException(0,"打印失败，请确认打印机是否正常连接");
-        }
-        return result;
-    }
-
-    private Result printBarcode(PrintParams params) throws IOException, BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        Subject subject = SecurityUtils.getSubject();
-        //调用热敏打印机打印SN
-//        String url = "http://"+user.getIpAddress()+":"+systemConfig.getClientPort()+"/cc/print/printBarcode?sn="+sn+"&mac="+mac;
-        String url = user.getIpAddress()+"/cc/print/printBarcode";
-        String res = HttpUtils.httpPostWithJSON(url, JSON.toJSONString(params),(String) subject.getSession().getId());
-        Result result = JSONObject.toJavaObject(JSON.parseObject(res),Result.class);
-        log.info("获取通讯端串口名称，收到通讯端返回数据:{}",result);
-        if(result.getCode() != 1){
-            WebSocketServer.SendMessage(new Result<>().fail(new CodeMsg(0,"打印失败，请确认打印机是否正常连接")).toString(),
-                    (String) subject.getSession().getId());
-            throw new BizException(0,"打印失败，请确认打印机是否正常连接");
-        }
-        return result;
-    }
-
-
-    public static void main(String[] args) {
-        NumberFormat f = new DecimalFormat("00000");
-        DateUtil.formatDate(new Date(),"yyMM");
-        String sn = "B1"+DateUtil.formatDate(new Date(),"yyMM")+ f.format(1);
-        System.out.println(sn);
-        String x = "123456";
-//        String command = "QRCODE 290,272,L,8,A,180,M2,S3,\"123456\"";
-        String command = "QRCODE 290,272,L,8,A,180,M2,S3,\""+x+"\"";
-        System.out.printf(command);
     }
 }

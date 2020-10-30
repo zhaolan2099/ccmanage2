@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.subject.Subject;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -231,7 +232,7 @@ public class UserController {
         Subject subject = SecurityUtils.getSubject();
         if(StringUtils.isEmpty(user.getLoginName())){
             jsonObject.put("code", 0);
-            jsonObject.put("msg", "重新登录");
+            jsonObject.put("msg", "log in again ");
             return jsonObject.toString();
         }
 
@@ -240,31 +241,31 @@ public class UserController {
             LoginUser loginUser = (LoginUser)subject.getSession().getAttribute("USER_SESSION");
             if(loginUser.getMenuIds() != null && loginUser.getMenuIds().size() > 0){
                 jsonObject.put("token", subject.getSession().getId());
-                jsonObject.put("msg", "登录成功");
+                jsonObject.put("msg", "登录成功。");
                 jsonObject.put("code",1);
             }else{
-                jsonObject.put("msg", "该用户没有分配任何角色，请先分配角色再登录系统！");
+                jsonObject.put("msg", "no roles");
                 jsonObject.put("code", 0);
             }
         }catch (RedisServerException e) {
-            jsonObject.put("msg", "无法连接redis..");
+            jsonObject.put("msg", "cont connect redis..");
             jsonObject.put("code", "0");
         } catch (IncorrectCredentialsException e) {
-            jsonObject.put("msg", "密码错误");
+            jsonObject.put("msg", "pws error");
             jsonObject.put("code", 0);
         } catch (LockedAccountException e) {
-            jsonObject.put("msg", "登录失败，该用户已被冻结");
+            jsonObject.put("msg", "users are frozen");
             jsonObject.put("code", 0);
         } catch (ExcessiveAttemptsException e){
             jsonObject.put("code",0);
-            jsonObject.put("msg", "该账号多次登录未成功，请5分钟后再试");
+            jsonObject.put("msg", "This account has not been logged in successfully for many times. Please try again after 5 minutes");
         } catch (AuthenticationException e) {
             if(StringUtils.isEmpty(user.getLoginName())){
                 jsonObject.put("code", 0);
-                jsonObject.put("msg", "重新登录");
+                jsonObject.put("msg", "log in again ");
             }else{
                 jsonObject.put("code", 0);
-                jsonObject.put("msg", "该用户不存在");
+                jsonObject.put("msg", "The user does not exist");
             }
         } catch (Exception e) {
             e.printStackTrace();

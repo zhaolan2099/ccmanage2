@@ -46,13 +46,29 @@ public class BoardPutinController {
         } catch (BizException e){
             e.printStackTrace();
             result = result.fail(e.getCodeMsg());
-            log.info("开始出库，业务异常:{}",result.toString());
+            log.info("通过SN号获取电路板，业务异常:{}",result.toString());
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
-            log.error("开始出库，系统异常:{}",e.getMessage(),e);
+            log.error("通过SN号获取电路板，系统异常:{}",e.getMessage(),e);
         }
-        log.info("开始出库，响应参数:{}",result.toString());
+        log.info("通过SN号获取电路板，响应参数:{}",result.toString());
+        return result;
+    }
+
+    @ApiOperation("确认是否是同一类板子")
+    @GetMapping(value = "checkType")
+    public Result checkType(@RequestParam(value = "sns") List<String> sns){
+        log.info("确认是否是同一类板子,接口参数,{}",sns.toString());
+        Result<String> result = new Result();
+        try {
+           return putinService.checkType(sns);
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("确认是否是同一类板子，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("确认是否是同一类板子，响应参数:{}",result.toString());
         return result;
     }
 
@@ -61,11 +77,8 @@ public class BoardPutinController {
     public Result<String> doPutin(@RequestParam(value = "sns") List<String> sns){
         log.info("确认入库,接口参数,{}",sns.toString());
         Result<String> result = new Result();
-        Jedis jedis = RedisUtil.getJedis();
         try {
-            Map<String,String> map= putinService.doPutin(sns);
-            jedis.set(map.get("key"),map.get("value"));
-            result = result.success(map.get("outNum"));
+            putinService.doPutin(sns);
         } catch (BizException e){
             e.printStackTrace();
             result = result.fail(e.getCodeMsg());
@@ -74,8 +87,6 @@ public class BoardPutinController {
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
             log.error("确认入库，系统异常:{}",e.getMessage(),e);
-        }finally {
-            jedis.close();
         }
         log.info("确认出库，响应参数:{}",result.toString());
         return result;

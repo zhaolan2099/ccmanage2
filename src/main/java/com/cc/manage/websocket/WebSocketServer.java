@@ -107,7 +107,7 @@ public class WebSocketServer {
      * @param message
      * @throws IOException
      */
-    public static void SendMessage(String message,String sessionId) throws IOException {
+    public static void SendMessage(String message,String sessionId) {
         Session session = null;
         session = SessionSet.get(sessionId);
         if(session !=  null){

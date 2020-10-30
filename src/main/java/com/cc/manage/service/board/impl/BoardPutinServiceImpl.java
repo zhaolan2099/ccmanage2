@@ -1,20 +1,23 @@
 package com.cc.manage.service.board.impl;
 
+import com.cc.manage.common.CodeMsg;
 import com.cc.manage.common.Constant;
+import com.cc.manage.common.Result;
 import com.cc.manage.dao.board.BoardMapper;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.sys.LoginUser;
-import com.cc.manage.domain.sys.User;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.service.board.BoardPutinService;
+import com.cc.manage.utils.DateUtil;
+import com.cc.manage.utils.RedisUtil;
 import com.cc.manage.utils.UserUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 
 @Service
 public class BoardPutinServiceImpl implements BoardPutinService {
@@ -22,21 +25,47 @@ public class BoardPutinServiceImpl implements BoardPutinService {
     BoardMapper boardMapper;
 
     @Override
-    public Map<String,String> doPutin(List<String> sns) throws BizException {
-        Map<String,String> map = this.buildPutinNum();
-        String putinNum = map.get("putinNum");
+    public void doPutin(List<String> sns) throws BizException {
+        if(sns == null || sns.size() == 0){
+            return;
+        }
+        Board temp = boardMapper.getBySn(sns.get(0));
+        Map<String,String> map = buildPutinNum(temp);
         LoginUser user = UserUtil.getCurrentUser();
-        Date outDate = new Date();
+        Date inDate = new Date();
         sns.forEach(o->{
             Board board = new Board();
             board.setOutUser(user.getId());
-            board.setOutTime(outDate);
-            board.setOutNum(putinNum);
+            board.setPutinTime(inDate);
+            board.setPutinNum(map.get("value"));
             board.setTestStatus(Constant.STATUS_4);
             board.setSn(o);
             boardMapper.updateBySn(board);
         });
-        return map;
+        RedisUtil.set(map.get("key"),map.get("value"));
+    }
+
+    @Override
+    public Result checkType(List<String> sns){
+        Result result = new Result();
+        List<Board> list = boardMapper.selectBatchForSn(sns);
+        boolean flag = true;
+        String type = "";
+        for (int i = 0; i < list.size(); i++){
+            if(i == 0){
+                type = list.get(i).getBoardType();
+            }else {
+                if(!type.equals(list.get(i).getBoardType())){
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        if(flag){
+            return  result.success();
+        }else {
+            return  result.fail(new CodeMsg(0,"测试板类型不致，无法打包。"));
+        }
     }
 
     @Override
@@ -56,20 +85,45 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         board.setPutinTime(new Date());
         board.setTestStatus(Constant.STATUS_3);
         board.setSn(sn);
-        boardMapper.updatePutIn(board);
+        boardMapper.putIn(board);
         return board;
     }
 
     @Override
-    public void cancelPutin(List<String> sn) {
-        sn.forEach(o->{
+    public void cancelPutin(List<String> sns) {
+        sns.forEach(o->{
             boardMapper.cancelPutin(o);
         });
     }
 
-    private Map<String,String> buildPutinNum(){
+    @Override
+    public void cancel(List<String> sns) {
+        boardMapper.lastStepForPutin(sns,Constant.STATUS_2);
+    }
+
+    private void  checkStatus(List<String> sns)throws BizException{
+        List<Board> list = boardMapper.selectBatchForSn(sns);
+        list.forEach(o->{
+            String status = o.getTestStatus();
+            if(!status.equals(Constant.STATUS_3) && !status.equals(Constant.STATUS_4) ){
+
+            }
+        });
+    }
+
+    private Map<String,String> buildPutinNum(Board board)throws BizException{
         Map<String,String> map = new HashMap<>();
-        map.put("putinNum","putinNum");
+        NumberFormat f = new DecimalFormat("000");
+        LoginUser user = UserUtil.getCurrentUser();
+        String orgNum = user.getOrgNum();
+        String date = DateUtil.formatDate(new Date(),"yyMM");
+        String key = Constant.REDIS_KEY_PUTIN+date+board.getBoardType();
+        Long value = Long.parseLong(StringUtils.isEmpty(RedisUtil.get(key))?"0":RedisUtil.get(key));
+        value = value + 1;
+        String sn = board.getBoardType()+orgNum+date+ f.format(value);
+        board.setSn(sn);
+        map.put("key",key);
+        map.put("value",String.valueOf(value));
         return map;
     }
 }

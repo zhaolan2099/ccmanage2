@@ -12,20 +12,23 @@ public class Constant {
 
     public static final String  STATUS_SUCCESS = "0";
     public static final String  STATUS_FAIL = "1";
-    //测试中
-    public static final String  STATUS_1 = "1";
     //测试完成
+    public static final String  STATUS_1 = "1";
+    //序列号已写入
     public static final String  STATUS_2 = "2";
     // 入库中
     public static final String  STATUS_3 = "3";
     //已入库
     public static final String  STATUS_4 = "4";
-    //已出库
+    //出库中
     public static final String  STATUS_5 = "5";
-    //查询类型，1,入库列表；2，出库列表；3台帐
+    //已出库
+    public static final String  STATUS_6 = "6";
+    //查询类型，1检测列表 2,入库列表；3，出库列表；4台帐
     public static final Integer  BOARD_QUERY_TYPE_1 = 1;
     public static final Integer  BOARD_QUERY_TYPE_2 = 2;
     public static final Integer  BOARD_QUERY_TYPE_3 = 3;
+    public static final Integer  BOARD_QUERY_TYPE_4 = 4;
 
     //A1 主板 A2 灯板
     public static final String  BOARD_TYPE_TYPE_A1 = "A1";
@@ -60,5 +63,8 @@ public class Constant {
     public static final Integer SN_WRITE_RES_0 = 0;
     public static final Integer SN_WRITE_RES_1 = 1;
     public static final Integer SN_WRITE_RES_2 = 2;
+
+    public static final String REDIS_KEY_PUTIN = "PUTIN";
+    public static final String REDIS_KEY_SN = "SN";
 
 }

@@ -1,11 +1,12 @@
 package com.cc.manage.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-
+@Slf4j
 @Component
 public class RedisUtil {
 
@@ -55,4 +56,34 @@ public class RedisUtil {
         return jedis;
     }
 
+    public static String set(String key,String value){
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            return jedis.set(key,value);
+        }catch (Exception e){
+            log.info("jedis连接异常.");
+            e.printStackTrace();
+        }finally {
+            if(jedis != null){
+                jedis.close();
+            }
+        }
+        return null;
+    }
+    public static String get(String key){
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            return jedis.get(key);
+        }catch (Exception e){
+            log.info("jedis连接异常.");
+            e.printStackTrace();
+        }finally {
+            if(jedis != null){
+                jedis.close();
+            }
+        }
+        return null;
+    }
 }

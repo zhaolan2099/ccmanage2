@@ -95,65 +95,10 @@ public class BoardServiceImpl implements BoardService {
         return pageVo;
     }
 
-    @Override
-    public void outIng(String sn) throws BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        Board board = new Board();
-        board.setOutUser(user.getId());
-        board.setOutTime(new Date());
-        board.setTestStatus(Constant.STATUS_3);
-        board.setSn(sn);
-        boardMapper.updateOut(board);
-
-    }
-
-    @Override
-    public Map<String,String>  doOut(List<String> sns) throws BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        Map<String,String> map = this.buildOutNum(user.getOrgNum());
-        String outNum = map.get("outNum");
-        Date outDate = new Date();
-        sns.forEach(o->{
-            Board board = new Board();
-            board.setOutUser(user.getId());
-            board.setOutTime(outDate);
-            board.setOutNum(outNum);
-            board.setTestStatus(Constant.STATUS_4);
-            board.setSn(o);
-            boardMapper.updateBySn(board);
-        });
-        return map;
-    }
-
-
-    @Override
-    public void cancelOut(List<String> sn) {
-        sn.forEach(o->{
-            boardMapper.cancelOut(o);
-        });
-    }
 
     @Override
     public Board getBySn(String sn) {
         return boardMapper.getBySn(sn);
-    }
-    @Override
-    public Map<String,String> buildSn(Board board) throws BizException {
-        Map<String,String> map = new HashMap<>();
-        NumberFormat f = new DecimalFormat("00000");
-        LoginUser user = UserUtil.getCurrentUser();
-        String orgNum = user.getOrgNum();
-        String date = DateUtil.formatDate(new Date(),"yyMM");
-        String key = date+board.getBoardType();
-        Jedis jedis = RedisUtil.getJedis();
-        Long value = Long.parseLong(StringUtils.isEmpty(jedis.get(key))?"0":jedis.get(key));
-        value = value + 1;
-        jedis.close();
-        String sn = board.getBoardType()+orgNum+date+ f.format(value);
-        board.setSn(sn);
-        map.put("key",key);
-        map.put("value",String.valueOf(value));
-        return map;
     }
 
     @Override
@@ -186,23 +131,5 @@ public class BoardServiceImpl implements BoardService {
         return boardMapper.getOutingByOrgId(user.getOrgId());
     }
 
-    @Override
-    @Transactional(isolation= Isolation.DEFAULT,propagation= Propagation.REQUIRED,rollbackFor = Exception.class)
-    public Board getBySnForOut(String sn) throws BizException{
-        Board board = boardMapper.getBySn(sn);
-        if(board == null){
-            throw new BizException(0,"未找到对应的电路板入库记录");
-        }
-//        if(board.getTestStatus().equals(Constant.TES_STATUS_3)){
-////            throw new BizException(0,"【"+sn+"】正在T出库中");
-//        }
-        if(board.getTestStatus().equals(Constant.STATUS_4)){
-            throw new BizException(0,"【"+sn+"】已出库");
-        }
-        //修改当前SN对应的电路板为出库中状态
-        this.outIng(sn);
-        board = boardMapper.getBySn(sn);
-        return board;
-    }
 
 }
