@@ -232,7 +232,7 @@ public class UserController {
         Subject subject = SecurityUtils.getSubject();
         if(StringUtils.isEmpty(user.getLoginName())){
             jsonObject.put("code", 0);
-            jsonObject.put("msg", "log in again ");
+            jsonObject.put("msg", "请重新登录");
             return jsonObject.toString();
         }
 
@@ -245,28 +245,28 @@ public class UserController {
                 jsonObject.put("name", loginUser.getName());
                 jsonObject.put("code",1);
             }else{
-                jsonObject.put("msg", "no roles");
+                jsonObject.put("msg", "该用户未分配角色");
                 jsonObject.put("code", 0);
             }
         }catch (RedisServerException e) {
-            jsonObject.put("msg", "cont connect redis..");
+            jsonObject.put("msg", "不能连接到redis..");
             jsonObject.put("code", "0");
         } catch (IncorrectCredentialsException e) {
-            jsonObject.put("msg", "pws error");
+            jsonObject.put("msg", "密码错误");
             jsonObject.put("code", 0);
         } catch (LockedAccountException e) {
-            jsonObject.put("msg", "users are frozen");
+            jsonObject.put("msg", "用户被冻结");
             jsonObject.put("code", 0);
         } catch (ExcessiveAttemptsException e){
             jsonObject.put("code",0);
-            jsonObject.put("msg", "This account has not been logged in successfully for many times. Please try again after 5 minutes");
+            jsonObject.put("msg", "该用户密码错误次数过多，请五分钟后再试");
         } catch (AuthenticationException e) {
             if(StringUtils.isEmpty(user.getLoginName())){
                 jsonObject.put("code", 0);
-                jsonObject.put("msg", "log in again ");
+                jsonObject.put("msg", "请重新登录    ");
             }else{
                 jsonObject.put("code", 0);
-                jsonObject.put("msg", "The user does not exist");
+                jsonObject.put("msg", "用户不存在");
             }
         } catch (Exception e) {
             e.printStackTrace();

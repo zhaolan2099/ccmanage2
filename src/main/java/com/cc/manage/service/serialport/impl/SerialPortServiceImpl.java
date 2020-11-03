@@ -90,6 +90,7 @@ public class SerialPortServiceImpl implements SerialPortService {
     private JSONObject handleTest(JSONObject jsonObject) throws BizException{
         Board board = new Board();
         String boardType = (String) jsonObject.get(Constant.BOARD_TYPE);
+        String esn = (String) jsonObject.get(Constant.ESN);
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
             board.setMac((String) jsonObject.get(Constant.MAC_ADDR));
         }
@@ -98,6 +99,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         }
         String testResult = (String) jsonObject.get(Constant.TEST_RESULT);
         board.setBoardType(boardType);
+        board.setEsn(esn);
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
@@ -172,6 +174,7 @@ public class SerialPortServiceImpl implements SerialPortService {
     }
     private JSONObject handleWriteSNResult(JSONObject jsonObject) throws BizException {
         String snWriteResult = (String) jsonObject.get(Constant.SN_WRITE_RESULT);
+        String esn = (String) jsonObject.get(Constant.ESN);
         JSONObject msg = new JSONObject();
         String mac = "";
         String mcuId = "";
@@ -209,6 +212,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         if(!StringUtils.isEmpty(mcuId)){
             board.setMcuId(mcuId);
         }
+        board.setEsn(esn);
         boardService.updateByTest(board);
         msg.put(Constant.RESULT,"0");
         return msg;

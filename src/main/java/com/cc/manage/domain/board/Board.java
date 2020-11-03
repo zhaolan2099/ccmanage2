@@ -57,6 +57,9 @@ public class Board implements Serializable {
     @Excel(name = "电路板状态",orderNum = "4",replace = {"测试中_1","测试通过_2","入库中_3","已入库_4","已出库_5"},width = 20)
     private String testStatus;
 
+    @ApiModelProperty(value = "工装序号")
+    private String esn;
+
     /**
      * 创建时间
      */

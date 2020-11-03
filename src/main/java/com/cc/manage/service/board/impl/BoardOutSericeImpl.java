@@ -63,12 +63,15 @@ public class BoardOutSericeImpl implements BoardOutSerice {
 
     @Override
     public void cancelOut(List<String> putinNums) {
+        putinNums.forEach(o->{
+            boardMapper.cancelOut(o);
+        });
 
     }
 
     @Override
     public void cancel(List<String> sns) {
-
+        boardMapper.lastStepForPutOut(sns,Constant.STATUS_4);
     }
 
     private Map<String,String> buildOutNum(String orgNum){

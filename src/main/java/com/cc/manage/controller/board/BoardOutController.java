@@ -89,7 +89,7 @@ public class BoardOutController {
         log.info("确认出库,接口参数,{}",putinNums);
         Result<String> result = new Result();
         try {
-            boardOutSerice.doOut(null);
+            boardOutSerice.doOut(putinNums);
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
@@ -137,13 +137,30 @@ public class BoardOutController {
         return result;
     }
 
-    @ApiOperation("取消出库")
+    @ApiOperation("出库中取消出库")
     @GetMapping(value = "cancelOut")
-    public Result cancelOut(@RequestParam(value = "sn") List<String> sn){
-        log.info("取消出库,接口参数,{}",sn);
+    public Result cancelOut(@RequestParam(value = "s") List<String> putinNums){
+        log.info("取消出库,接口参数,{}",putinNums);
         Result result = new Result();
         try {
-            boardOutSerice.cancelOut(null);
+            boardOutSerice.cancelOut(putinNums);
+            result = result.success();
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("取消出库，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("取消出库，响应参数:{}",result.toString());
+        return result;
+    }
+
+    @ApiOperation("出库列表-取消")
+    @GetMapping(value = "cancel")
+    public Result cancel(@RequestParam(value = "sns") List<String> sns){
+        log.info("取消出库,接口参数,{}",sns);
+        Result result = new Result();
+        try {
+            boardOutSerice.cancel(sns);
             result = result.success();
         }catch (Exception e){
             e.printStackTrace();

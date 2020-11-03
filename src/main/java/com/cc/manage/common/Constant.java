@@ -56,6 +56,7 @@ public class Constant {
     public static final String SN_WRITE_RESULT = "SN_Write_Result";
     public static final String PRINT = "Print";
     public static final String SN = "SN";
+    public static final String ESN = "ESN";
 
 
 

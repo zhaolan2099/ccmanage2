@@ -109,4 +109,21 @@ public class BoardPutinController {
         return result;
     }
 
+    @ApiOperation("入库列表-取消")
+    @GetMapping(value = "cancelPutin")
+    public Result cancel(@RequestParam(value = "sn") List<String> sn){
+        log.info("回到上一步,接口参数,{}",sn);
+        Result result = new Result();
+        try {
+            putinService.cancel(sn);
+            result = result.success();
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("回到上一步，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("回到上一步，响应参数:{}",result.toString());
+        return result;
+    }
+
 }

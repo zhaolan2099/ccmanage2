@@ -19,7 +19,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     id, sn, mac, mcu_id,board_type, org_id, test_status, create_time, create_user, putin_time,
-    putin_user,out_time,out_user,out_num
+    putin_user,out_time,out_user,out_num,esn
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
@@ -40,12 +40,12 @@
     <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
     insert into board (sn, mac,mcu_id, board_type,
       org_id, test_status, create_time, 
-      create_user, putin_time, putin_user,test_time,test_user
+      create_user, putin_time, putin_user,test_time,test_user,esn
       )
     values (#{sn,jdbcType=VARCHAR}, #{mac,jdbcType=VARCHAR},#{mcuId}, #{boardType,jdbcType=VARCHAR},
       #{orgId,jdbcType=BIGINT}, #{testStatus,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{createUser,jdbcType=BIGINT}, #{putinTime,jdbcType=TIMESTAMP}, #{putinUser,jdbcType=BIGINT}
-      , #{testTime,jdbcType=TIMESTAMP}, #{testUser,jdbcType=BIGINT}
+      , #{testTime,jdbcType=TIMESTAMP}, #{testUser,jdbcType=BIGINT},#{esn}
       )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
@@ -141,6 +141,9 @@
             </if>
             <if test="putinUser != null">
                 putin_user = #{putinUser,jdbcType=BIGINT},
+            </if>
+            <if test="esn != null">
+                esn = #{esn},
             </if>
         </set>
         <choose>
@@ -472,5 +475,19 @@
         SET a.test_status = #{status},a.putin_num = null,a.putin_time = null,a.putin_user = null
         WHERE
             a.putin_num = b.putin_num
+    </update>
+    <update id="lastStepForPutOut">
+        UPDATE board a,
+        (
+            SELECT DISTINCT
+                out_num
+            FROM
+                board
+            WHERE
+                sn IN (<foreach collection="sns" separator="," item="sn">#{sn}</foreach>)
+                ) b
+                SET a.test_status = #{status},a.out_num = null,a.out_time = null,a.out_user = null
+            WHERE
+        a.putin_num = b.putin_num
     </update>
 </mapper>
