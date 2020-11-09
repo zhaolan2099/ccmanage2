@@ -40,4 +40,6 @@ public interface BoardPutinService {
      * @param sns
      */
     void cancel(List<String> sns);
+
+    List<Board> beginPutin() throws BizException;
 }

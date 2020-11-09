@@ -59,6 +59,7 @@ public interface BoardMapper {
     List<BoardForOutExport> selectListForOutExport(String outNum);
 
     List<Board> getOutingByOrgId(Long orgId);
+    List<Board> getPutinByOrgId(Long orgId);
 
     /**
      * 已入库，回到上一步  SN号写入完成

@@ -101,6 +101,15 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         boardMapper.lastStepForPutin(sns,Constant.STATUS_2);
     }
 
+    @Override
+    public List<Board> beginPutin() throws BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        if(user.getOrgId() == null){
+            throw new BizException(0,"只有厂商人员才可操作");
+        }
+        return boardMapper.getOutingByOrgId(user.getOrgId());
+    }
+
     private void  checkStatus(List<String> sns)throws BizException{
         List<Board> list = boardMapper.selectBatchForSn(sns);
         list.forEach(o->{

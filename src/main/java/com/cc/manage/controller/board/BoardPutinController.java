@@ -94,7 +94,7 @@ public class BoardPutinController {
 
     @ApiOperation("取消入库")
     @GetMapping(value = "cancelPutin")
-    public Result cancelOut(@RequestParam(value = "sn") List<String> sn){
+    public Result cancelPutin(@RequestParam(value = "sn") List<String> sn){
         log.info("取消入库,接口参数,{}",sn);
         Result result = new Result();
         try {
@@ -110,7 +110,7 @@ public class BoardPutinController {
     }
 
     @ApiOperation("入库列表-取消")
-    @GetMapping(value = "cancelPutin")
+    @GetMapping(value = "cancel")
     public Result cancel(@RequestParam(value = "sn") List<String> sn){
         log.info("回到上一步,接口参数,{}",sn);
         Result result = new Result();
@@ -123,6 +123,27 @@ public class BoardPutinController {
             log.error("回到上一步，系统异常:{}",e.getMessage(),e);
         }
         log.info("回到上一步，响应参数:{}",result.toString());
+        return result;
+    }
+
+    @ApiOperation("开始入库")
+    @GetMapping(value = "beginPutin")
+    public Result<List<Board>> beginPutin(){
+        log.info("开始入库");
+        Result<List<Board>> result = new Result();
+        try {
+            List<Board> list = putinService.beginPutin();
+            result = result.success(list);
+        }catch (BizException e){
+            e.printStackTrace();
+            result = result.fail(e.getCodeMsg());
+            log.error("开始入库，业务异常:{}",e.getMessage(),e);
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("开始入库，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("开始入库，响应参数:{}",result.toString());
         return result;
     }
 
