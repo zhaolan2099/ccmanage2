@@ -15,13 +15,7 @@ public interface BoardPutinService {
     void doPutin(List<String> sns) throws BizException;
 
 
-    /**
-     * 检查打包板类型是否一致，不一致不允许打包
-     * @param sns
-     * @return
-     * @throws BizException
-     */
-    Result checkType(List<String> sns);
+
 
     /**
      *  通过扫描SN号，将测试完成的电路板修改为入库中

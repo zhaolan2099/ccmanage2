@@ -2,6 +2,7 @@ package com.cc.manage.service.board;
 
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.board.BoardForOutExport;
+import com.cc.manage.domain.board.BoardOuting;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.query.PageVo;
 import com.cc.manage.query.board.BoardQuery;
@@ -47,6 +48,6 @@ public interface BoardService {
     void updateBySn(Board board);
 
 
-    List<Board> beginOut() throws BizException;
+
 
 }

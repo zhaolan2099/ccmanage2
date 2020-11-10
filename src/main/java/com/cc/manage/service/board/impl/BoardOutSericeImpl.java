@@ -3,6 +3,7 @@ package com.cc.manage.service.board.impl;
 import com.cc.manage.common.Constant;
 import com.cc.manage.dao.board.BoardMapper;
 import com.cc.manage.domain.board.Board;
+import com.cc.manage.domain.board.BoardOuting;
 import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.service.board.BoardOutSerice;
@@ -31,7 +32,8 @@ public class BoardOutSericeImpl implements BoardOutSerice {
     BoardMapper boardMapper;
 
     @Override
-    public void outIng(String putinNum)throws BizException {
+    public BoardOuting outIng(String putinNum)throws BizException {
+        BoardOuting boardOuting = new BoardOuting();
         List<Board> list = boardMapper.getByPutinNum(putinNum);
         if(list == null || list.size() == 0){
             throw new BizException(0,"没有找到相关入库记录");
@@ -39,7 +41,12 @@ public class BoardOutSericeImpl implements BoardOutSerice {
         if(Constant.STATUS_6.equals(list.get(0).getTestStatus())){
             throw new BizException(0,"已出库");
         }
+        boardOuting.setPutinNum(putinNum);
+        boardOuting.setBoardCount(list.size());
+        boardOuting.setOrgName(list.get(0).getOrgName());
+        boardOuting.setTypeName(list.get(0).getBoardTypeName());
         boardMapper.outIng(putinNum);
+        return boardOuting;
     }
 
     @Override
@@ -101,4 +108,14 @@ public class BoardOutSericeImpl implements BoardOutSerice {
         map.put("outNum",orgNum+date+f.format(value));
         return map;
     }
+
+    @Override
+    public List<BoardOuting> beginOut()throws BizException {
+        LoginUser user = UserUtil.getCurrentUser();
+        if(user.getOrgId() == null){
+            throw new BizException(0,"只有厂商人员才可操作");
+        }
+        return boardMapper.getOutingByOrgId(user.getOrgId());
+    }
+
 }

@@ -5,6 +5,7 @@ import com.cc.manage.common.Constant;
 import com.cc.manage.common.Result;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.board.BoardForOutExport;
+import com.cc.manage.domain.board.BoardOuting;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.query.PageVo;
 import com.cc.manage.query.board.BoardQuery;
@@ -67,14 +68,14 @@ public class BoardOutController {
         return result;
     }
 
-    @ApiOperation("出库中-列表展示入库单号")
+    @ApiOperation("出库中-扫码枪扫描时调用")
     @GetMapping(value = "outIng")
-    public Result<String> outIng(@RequestParam(value = "putinNum") String putinNum){
+    public Result<BoardOuting> outIng(@RequestParam(value = "putinNum") String putinNum){
         log.info("出库中,接口参数,{}",putinNum);
-        Result<String> result = new Result();
+        Result<BoardOuting> result = new Result();
         try {
-             boardOutSerice.outIng(putinNum);
-             result = result.success();
+            BoardOuting boardOuting = boardOutSerice.outIng(putinNum);
+            result = result.success(boardOuting);
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
@@ -83,23 +84,23 @@ public class BoardOutController {
         log.info("出库中，响应参数:{}",result.toString());
         return result;
     }
-    @ApiOperation("出库中-列表展示电路板列表")
-    @GetMapping(value = "outIng2")
-    public Result<List<Board>> outIng2(@RequestParam(value = "putinNum") String putinNum){
-        log.info("出库中,接口参数,{}",putinNum);
-        Result<List<Board>> result = new Result();
-        List<Board> list;
-        try {
-            list = boardOutSerice.outIng2(putinNum);
-            result = result.success(list);
-        }catch (Exception e){
-            e.printStackTrace();
-            result = result.fail(CodeMsg.SERVER_ERROR);
-            log.error("出库中，系统异常:{}",e.getMessage(),e);
-        }
-        log.info("出库中，响应参数:{}",result.toString());
-        return result;
-    }
+//    @ApiOperation("出库中-列表展示电路板列表")
+//    @GetMapping(value = "outIng2")
+//    public Result<List<Board>> outIng2(@RequestParam(value = "putinNum") String putinNum){
+//        log.info("出库中,接口参数,{}",putinNum);
+//        Result<List<Board>> result = new Result();
+//        List<Board> list;
+//        try {
+//            list = boardOutSerice.outIng2(putinNum);
+//            result = result.success(list);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            result = result.fail(CodeMsg.SERVER_ERROR);
+//            log.error("出库中，系统异常:{}",e.getMessage(),e);
+//        }
+//        log.info("出库中，响应参数:{}",result.toString());
+//        return result;
+//    }
     @ApiOperation("确认出库")
     @GetMapping(value = "doOut")
     public Result<String> doOut(@RequestParam(value = "putinNums") List<String> putinNums){
@@ -116,19 +117,19 @@ public class BoardOutController {
         return result;
     }
 
-    @ApiOperation("出库单导出，确认出库后调用该接口导出excel")
-    @GetMapping(value = "export")
-    public void export(String outNum){
-        log.info("出库单导出,接口参数,{}",outNum);
-        List<BoardForOutExport> list = boardService.selectListForOutExport(outNum);
-        try {
-            ExcelUtil.exportExcel(list, null,
-                    "出库单导出", BoardForOutExport.class, "出库单导出.xls", response);
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.error("出库单导出异常");
-        }
-    }
+//    @ApiOperation("出库单导出，确认出库后调用该接口导出excel")
+//    @GetMapping(value = "export")
+//    public void export(String outNum){
+//        log.info("出库单导出,接口参数,{}",outNum);
+//        List<BoardForOutExport> list = boardService.selectListForOutExport(outNum);
+//        try {
+//            ExcelUtil.exportExcel(list, null,
+//                    "出库单导出", BoardForOutExport.class, "出库单导出.xls", response);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            log.error("出库单导出异常");
+//        }
+//    }
 
     @ApiOperation("根据出库单查看")
     @GetMapping(value = "getByOutNum")
@@ -154,7 +155,7 @@ public class BoardOutController {
         return result;
     }
 
-    @ApiOperation("出库中取消出库")
+    @ApiOperation("出库中-取消出库")
     @GetMapping(value = "cancelOut")
     public Result cancelOut(@RequestParam(value = "putinNums") List<String> putinNums){
         log.info("取消出库,接口参数,{}",putinNums);
@@ -190,11 +191,11 @@ public class BoardOutController {
 
     @ApiOperation("开始出库")
     @GetMapping(value = "beginOut")
-    public Result<List<Board>> beginOut(){
+    public Result<List<BoardOuting>> beginOut(){
         log.info("开始出库");
-        Result<List<Board>> result = new Result();
+        Result<List<BoardOuting>> result = new Result();
         try {
-            List<Board> list = boardService.beginOut();
+            List<BoardOuting> list = boardOutSerice.beginOut();
             result = result.success(list);
         }catch (BizException e){
             e.printStackTrace();

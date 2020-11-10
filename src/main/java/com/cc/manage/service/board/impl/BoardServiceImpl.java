@@ -4,6 +4,7 @@ import com.cc.manage.common.Constant;
 import com.cc.manage.dao.board.BoardMapper;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.board.BoardForOutExport;
+import com.cc.manage.domain.board.BoardOuting;
 import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.query.PageVo;
@@ -122,14 +123,6 @@ public class BoardServiceImpl implements BoardService {
         boardMapper.updateBySn(board);
     }
 
-    @Override
-    public List<Board> beginOut()throws BizException {
-        LoginUser user = UserUtil.getCurrentUser();
-        if(user.getOrgId() == null){
-            throw new BizException(0,"只有厂商人员才可操作");
-        }
-        return boardMapper.getOutingByOrgId(user.getOrgId());
-    }
 
 
 }

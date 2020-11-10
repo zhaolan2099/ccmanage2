@@ -29,6 +29,7 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         if(sns == null || sns.size() == 0){
             return;
         }
+        this.checkType(sns);
         Board temp = boardMapper.getBySn(sns.get(0));
         Map<String,String> map = buildPutinNum(temp);
         LoginUser user = UserUtil.getCurrentUser();
@@ -44,10 +45,12 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         });
         RedisUtil.set(map.get("key"),map.get("value"));
     }
-
-    @Override
-    public Result checkType(List<String> sns){
-        Result result = new Result();
+    /**
+     * 检查打包板类型是否一致，不一致不允许打包
+     * @param sns
+     * @throws BizException
+     */
+    private void checkType(List<String> sns) throws BizException{
         List<Board> list = boardMapper.selectBatchForSn(sns);
         boolean flag = true;
         String type = "";
@@ -61,10 +64,8 @@ public class BoardPutinServiceImpl implements BoardPutinService {
                 }
             }
         }
-        if(flag){
-            return  result.success();
-        }else {
-            return  result.fail(new CodeMsg(0,"测试板类型不致，无法打包。"));
+        if(!flag){
+            throw new BizException(0,"测试板类型不致，无法打包。");
         }
     }
 

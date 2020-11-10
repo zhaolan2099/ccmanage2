@@ -3,6 +3,7 @@ package com.cc.manage.dao.board;
 
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.board.BoardForOutExport;
+import com.cc.manage.domain.board.BoardOuting;
 import com.cc.manage.query.board.BoardQuery;
 import org.apache.ibatis.annotations.Param;
 
@@ -58,7 +59,7 @@ public interface BoardMapper {
 
     List<BoardForOutExport> selectListForOutExport(String outNum);
 
-    List<Board> getOutingByOrgId(Long orgId);
+    List<BoardOuting> getOutingByOrgId(Long orgId);
     List<Board> getPutinByOrgId(Long orgId);
 
     /**

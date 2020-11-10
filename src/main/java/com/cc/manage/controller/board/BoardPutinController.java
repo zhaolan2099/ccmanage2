@@ -36,7 +36,7 @@ public class BoardPutinController {
     @Resource
     BoardService boardService;
 
-    @ApiOperation("点开始入库后，扫码枪扫出SN号，通过SN号获取电路板")
+    @ApiOperation("入库中-扫码枪扫描时调用")
     @GetMapping(value = "getBySn")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "sn", value = "SN号", required = true, dataType = "string")
@@ -61,21 +61,6 @@ public class BoardPutinController {
         return result;
     }
 
-    @ApiOperation("确认是否是同一类板子")
-    @GetMapping(value = "checkType")
-    public Result checkType(@RequestParam(value = "sns") List<String> sns){
-        log.info("确认是否是同一类板子,接口参数,{}",sns.toString());
-        Result<String> result = new Result();
-        try {
-           return putinService.checkType(sns);
-        }catch (Exception e){
-            e.printStackTrace();
-            result = result.fail(CodeMsg.SERVER_ERROR);
-            log.error("确认是否是同一类板子，系统异常:{}",e.getMessage(),e);
-        }
-        log.info("确认是否是同一类板子，响应参数:{}",result.toString());
-        return result;
-    }
 
     @ApiOperation("确认入库")
     @GetMapping(value = "doPutin")
@@ -97,7 +82,7 @@ public class BoardPutinController {
         return result;
     }
 
-    @ApiOperation("取消入库")
+    @ApiOperation("入库中-取消")
     @GetMapping(value = "cancelPutin")
     public Result cancelPutin(@RequestParam(value = "sn") List<String> sn){
         log.info("取消入库,接口参数,{}",sn);
