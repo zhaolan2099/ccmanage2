@@ -1,9 +1,12 @@
 package com.cc.manage.controller.board;
 
 import com.cc.manage.common.CodeMsg;
+import com.cc.manage.common.Constant;
 import com.cc.manage.common.Result;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.exception.BizException;
+import com.cc.manage.query.PageVo;
+import com.cc.manage.query.board.BoardQuery;
 import com.cc.manage.service.board.BoardPutinService;
 import com.cc.manage.service.board.BoardService;
 import com.cc.manage.utils.RedisUtil;
@@ -30,6 +33,8 @@ import java.util.Map;
 public class BoardPutinController {
     @Resource
     BoardPutinService putinService;
+    @Resource
+    BoardService boardService;
 
     @ApiOperation("点开始入库后，扫码枪扫出SN号，通过SN号获取电路板")
     @GetMapping(value = "getBySn")
@@ -146,5 +151,29 @@ public class BoardPutinController {
         log.info("开始入库，响应参数:{}",result.toString());
         return result;
     }
+
+    @ApiOperation("电路板入库列表")
+    @GetMapping(value = "putinList")
+    public Result<PageVo<Board>> putinList(BoardQuery query){
+        query.setType(Constant.BOARD_QUERY_TYPE_2);
+        log.info("电路板入库列表,接口参数,{}",query.toString());
+        Result<PageVo<Board>> result = new Result();
+        PageVo<Board> pageVo;
+        try {
+            pageVo = boardService.selectListForPage(query);
+            result = result.success(pageVo);
+        }catch (BizException e) {
+            e.printStackTrace();
+            result = result.fail(e.getCodeMsg());
+            log.info("电路板入库列表,业务异常：{}",e.getCodeMsg());
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("电路板入库列表，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("电路板入库列表，响应参数:{}",result.toString());
+        return result;
+    }
+
 
 }

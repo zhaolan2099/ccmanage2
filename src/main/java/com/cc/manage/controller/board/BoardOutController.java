@@ -67,22 +67,39 @@ public class BoardOutController {
         return result;
     }
 
-    @ApiOperation("出库中")
+    @ApiOperation("出库中-列表展示入库单号")
     @GetMapping(value = "outIng")
     public Result<String> outIng(@RequestParam(value = "putinNum") String putinNum){
         log.info("出库中,接口参数,{}",putinNum);
         Result<String> result = new Result();
         try {
-            boardOutSerice.outIng(putinNum);
+             boardOutSerice.outIng(putinNum);
+             result = result.success();
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
-            log.error("确认出库，系统异常:{}",e.getMessage(),e);
+            log.error("出库中，系统异常:{}",e.getMessage(),e);
         }
-        log.info("确认出库，响应参数:{}",result.toString());
+        log.info("出库中，响应参数:{}",result.toString());
         return result;
     }
-
+    @ApiOperation("出库中-列表展示电路板列表")
+    @GetMapping(value = "outIng2")
+    public Result<List<Board>> outIng2(@RequestParam(value = "putinNum") String putinNum){
+        log.info("出库中,接口参数,{}",putinNum);
+        Result<List<Board>> result = new Result();
+        List<Board> list;
+        try {
+            list = boardOutSerice.outIng2(putinNum);
+            result = result.success(list);
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("出库中，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("出库中，响应参数:{}",result.toString());
+        return result;
+    }
     @ApiOperation("确认出库")
     @GetMapping(value = "doOut")
     public Result<String> doOut(@RequestParam(value = "putinNums") List<String> putinNums){
@@ -139,7 +156,7 @@ public class BoardOutController {
 
     @ApiOperation("出库中取消出库")
     @GetMapping(value = "cancelOut")
-    public Result cancelOut(@RequestParam(value = "s") List<String> putinNums){
+    public Result cancelOut(@RequestParam(value = "putinNums") List<String> putinNums){
         log.info("取消出库,接口参数,{}",putinNums);
         Result result = new Result();
         try {

@@ -35,9 +35,9 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         Date inDate = new Date();
         sns.forEach(o->{
             Board board = new Board();
-            board.setOutUser(user.getId());
+            board.setPutinUser(user.getId());
             board.setPutinTime(inDate);
-            board.setPutinNum(map.get("value"));
+            board.setPutinNum(map.get("putinNum"));
             board.setTestStatus(Constant.STATUS_4);
             board.setSn(o);
             boardMapper.updateBySn(board);
@@ -81,8 +81,8 @@ public class BoardPutinServiceImpl implements BoardPutinService {
             throw new BizException(0,sn+"，已出库");
         }
         LoginUser user = UserUtil.getCurrentUser();
-        board.setPutinUser(user.getId());
-        board.setPutinTime(new Date());
+//        board.setPutinUser(user.getId());
+//        board.setPutinTime(new Date());
         board.setTestStatus(Constant.STATUS_3);
         board.setSn(sn);
         boardMapper.putIn(board);
@@ -107,7 +107,7 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         if(user.getOrgId() == null){
             throw new BizException(0,"只有厂商人员才可操作");
         }
-        return boardMapper.getOutingByOrgId(user.getOrgId());
+        return boardMapper.getPutinByOrgId(user.getOrgId());
     }
 
     private void  checkStatus(List<String> sns)throws BizException{
@@ -129,10 +129,11 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         String key = Constant.REDIS_KEY_PUTIN+date+board.getBoardType();
         Long value = Long.parseLong(StringUtils.isEmpty(RedisUtil.get(key))?"0":RedisUtil.get(key));
         value = value + 1;
-        String sn = board.getBoardType()+orgNum+date+ f.format(value);
-        board.setSn(sn);
+        String putinNum = board.getBoardType()+orgNum+date+ f.format(value);
+        board.setPutinNum(putinNum);
         map.put("key",key);
         map.put("value",String.valueOf(value));
+        map.put("putinNum",putinNum);
         return map;
     }
 }

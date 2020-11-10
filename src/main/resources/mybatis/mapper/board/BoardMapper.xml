@@ -32,7 +32,7 @@
     where id = #{id,jdbcType=BIGINT}
   </delete>
     <delete id="cancelOut">
-        update board set out_num = null ,out_user = null ,out_time = null,test_status = 2 where sn = #{sn}
+        update board set out_num = null ,out_user = null ,out_time = null,test_status = 4 where putin_num  = #{putinNum}
     </delete>
     <delete id="cancelPutin">
         update board set putin_num = null ,putin_user = null ,putin_time = null,test_status = 2 where sn = #{sn}
@@ -338,7 +338,7 @@
                     and a.test_status in (3,4)
                 </when>
                 <when test="type == 3">
-                    and a.test_status = 5
+                    and a.test_status in(5,6)
                 </when>
             </choose>
         </where>
@@ -375,7 +375,7 @@
         (<foreach collection="list" item="sn" separator=",">#{sn}</foreach>)
     </select>
     <update id="outIng">
-        update board set test_status = 4 where putin_num = #{putinNum}
+        update board set test_status = 5 where putin_num = #{putinNum}
     </update>
     <update id="updateByPutinNum">
         update board
@@ -422,7 +422,7 @@
     <select id="getByPutinNum" resultMap="BaseResultMap">
         select * from board where putin_num = #{putinNum}
     </select>
-    <select id="getPutinByOrgId" resultType="com.cc.manage.domain.board.Board"></select>
+    <select id="getPutinByOrgId" resultType="com.cc.manage.domain.board.Board">
         SELECT
         a.*, b.`name` AS orgName,d.`name` as outUserName,f.tag as boardTypeName
         FROM
@@ -432,6 +432,7 @@
         LEFT JOIN dict f ON a.board_type = f.val
         AND f.type_id = 1
         WHERE a.org_id = #{orgId} and a.test_status = 3
+    </select>
     <update id="updateByOutNum">
         update board
         <set>
@@ -497,6 +498,6 @@
                 ) b
                 SET a.test_status = #{status},a.out_num = null,a.out_time = null,a.out_user = null
             WHERE
-        a.putin_num = b.putin_num
+        a.out_num = b.out_num
     </update>
 </mapper>

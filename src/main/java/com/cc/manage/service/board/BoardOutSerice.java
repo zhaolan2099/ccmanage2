@@ -1,5 +1,6 @@
 package com.cc.manage.service.board;
 
+import com.cc.manage.domain.board.Board;
 import com.cc.manage.exception.BizException;
 
 import java.util.List;
@@ -13,9 +14,9 @@ public interface BoardOutSerice{
     /**
      * 出库中
      * @param putinNum
-     * @return
      */
-    String outIng(String putinNum)throws BizException;
+    void outIng(String putinNum)throws BizException;
+    List<Board> outIng2(String putinNum)throws BizException;
     /**
      * 通过入库打包码出库
      * @param putinNums

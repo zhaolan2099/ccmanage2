@@ -29,6 +29,6 @@ public class BoardQuery extends BaseQuery {
     private String boardType;
     @ApiModelProperty(value = "出库单号")
     private String outNum;
-    @ApiModelProperty(value = "1,入库列表；2，出库列表；3台帐",hidden = true)
+    @ApiModelProperty(value = "1检测列表 2,入库列表；3，出库列表；4台帐",hidden = true)
     private Integer type;
 }

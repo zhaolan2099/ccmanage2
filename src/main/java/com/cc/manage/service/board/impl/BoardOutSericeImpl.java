@@ -31,7 +31,7 @@ public class BoardOutSericeImpl implements BoardOutSerice {
     BoardMapper boardMapper;
 
     @Override
-    public String outIng(String putinNum)throws BizException {
+    public void outIng(String putinNum)throws BizException {
         List<Board> list = boardMapper.getByPutinNum(putinNum);
         if(list == null || list.size() == 0){
             throw new BizException(0,"没有找到相关入库记录");
@@ -40,7 +40,20 @@ public class BoardOutSericeImpl implements BoardOutSerice {
             throw new BizException(0,"已出库");
         }
         boardMapper.outIng(putinNum);
-        return putinNum;
+    }
+
+    @Override
+    public List<Board> outIng2(String putinNum) throws BizException {
+        List<Board> list = boardMapper.getByPutinNum(putinNum);
+        if(list == null || list.size() == 0){
+            throw new BizException(0,"没有找到相关入库记录");
+        }
+        if(Constant.STATUS_6.equals(list.get(0).getTestStatus())){
+            throw new BizException(0,"已出库");
+        }
+        boardMapper.outIng(putinNum);
+        list = boardMapper.getByPutinNum(putinNum);
+        return  list;
     }
 
     @Override
