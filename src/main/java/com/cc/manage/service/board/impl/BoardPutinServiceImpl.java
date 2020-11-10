@@ -7,6 +7,7 @@ import com.cc.manage.dao.board.BoardMapper;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
+import com.cc.manage.query.board.BoardQuery;
 import com.cc.manage.service.board.BoardPutinService;
 import com.cc.manage.utils.DateUtil;
 import com.cc.manage.utils.RedisUtil;
@@ -110,6 +111,7 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         }
         return boardMapper.getPutinByOrgId(user.getOrgId());
     }
+
 
     private void  checkStatus(List<String> sns)throws BizException{
         List<Board> list = boardMapper.selectBatchForSn(sns);

@@ -161,4 +161,27 @@ public class BoardPutinController {
     }
 
 
+
+    @ApiOperation("根据入库单号查看")
+    @GetMapping(value = "getByPutinNum")
+    public Result<List<Board>> getByPutinNum(String putinNum){
+        log.info("根据入库单号查看,接口参数,{}",putinNum);
+        BoardQuery query = new BoardQuery();
+        query.setPageHiden(true);
+        query.setPutinNum(putinNum);
+        Result<List<Board>> result = new Result();
+        List<Board> list;
+        try {
+            list = boardService.selectList(query);
+            result = result.success(list);
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("根据入库单号查看，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("根据入库单号查看，响应参数:{}",result.toString());
+        return result;
+    }
+
+
 }

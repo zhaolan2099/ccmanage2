@@ -272,6 +272,7 @@
     <select id="selectList" resultType="com.cc.manage.domain.board.Board">
         SELECT
             a.*, b. NAME AS orgName,
+            e.name as testUserName,
             c.`name` AS putinUserName,
             concat(b. NAME,'-',d. NAME) AS outUserName,
             f.tag as boardTypeName
@@ -280,6 +281,7 @@
         LEFT JOIN org b ON a.org_id = b.id
         LEFT JOIN USER c ON a.putin_user = c.id
         LEFT JOIN USER d ON a.out_user = d.id
+        LEFT join USER e ON a.test_user = e.id
         LEFT JOIN dict f on a.board_type = f.val and f.type_id = 1
         <include refid="whereSql"/>
         order by create_time,putin_time,out_time desc
@@ -329,6 +331,9 @@
             </if>
             <if test="outNum != null and outNum !=''">
                 and a.out_num like concat('%',#{outNum},'%')
+            </if>
+            <if test="putinNum != null and putinNum !=''">
+                and a.putin_num like concat('%',#{putinNum},'%')
             </if>
             <choose>
                 <when test="type == 1">

@@ -14,9 +14,6 @@ public interface BoardPutinService {
      */
     void doPutin(List<String> sns) throws BizException;
 
-
-
-
     /**
      *  通过扫描SN号，将测试完成的电路板修改为入库中
      * @param sn
@@ -36,4 +33,5 @@ public interface BoardPutinService {
     void cancel(List<String> sns);
 
     List<Board> beginPutin() throws BizException;
+
 }
