@@ -26,25 +26,27 @@ public class BoardPutinServiceImpl implements BoardPutinService {
     BoardMapper boardMapper;
 
     @Override
-    public void doPutin(List<String> sns) throws BizException {
+    public String doPutin(List<String> sns) throws BizException {
         if(sns == null || sns.size() == 0){
-            return;
+            return null;
         }
         this.checkType(sns);
         Board temp = boardMapper.getBySn(sns.get(0));
         Map<String,String> map = buildPutinNum(temp);
+        String putinNum = map.get("putinNum");
         LoginUser user = UserUtil.getCurrentUser();
         Date inDate = new Date();
         sns.forEach(o->{
             Board board = new Board();
             board.setPutinUser(user.getId());
             board.setPutinTime(inDate);
-            board.setPutinNum(map.get("putinNum"));
+            board.setPutinNum(putinNum);
             board.setTestStatus(Constant.STATUS_4);
             board.setSn(o);
             boardMapper.updateBySn(board);
         });
         RedisUtil.set(map.get("key"),map.get("value"));
+        return putinNum;
     }
     /**
      * 检查打包板类型是否一致，不一致不允许打包

@@ -53,8 +53,8 @@ public class Board implements Serializable {
     /**
      * 测试状态1测试中2已入库3出库中4已出库
      */
-    @ApiModelProperty(value = "测试状态1测试中2测试通过3入库中4已入库5已出库")
-    @Excel(name = "电路板状态",orderNum = "4",replace = {"测试中_1","测试通过_2","入库中_3","已入库_4","已出库_5"},width = 20)
+    @ApiModelProperty(value = "测试状态1测试完成2序列号已写入3入库中4已入库5入库中6已出库")
+    @Excel(name = "电路板状态",orderNum = "4",replace = {"测试完成_1","序列号已写入_2","入库中_3","已入库_4","出库中_5","已出库_6"},width = 20)
     private String testStatus;
 
     @ApiModelProperty(value = "工装序号")

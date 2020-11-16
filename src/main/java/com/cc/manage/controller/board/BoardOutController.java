@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.List;
 
 @Api(tags = "出库管理")
@@ -70,6 +71,10 @@ public class BoardOutController {
         try {
             BoardOuting boardOuting = boardOutSerice.outIng(putinNum);
             result = result.success(boardOuting);
+        }catch (BizException e){
+            e.printStackTrace();
+            result = result.fail(e.getCodeMsg());
+            log.error("出库中，业务异常:{}",e.getMessage(),e);
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);
@@ -80,11 +85,15 @@ public class BoardOutController {
     }
     @ApiOperation("确认出库")
     @GetMapping(value = "doOut")
-    public Result<String> doOut(@RequestParam(value = "putinNums") List<String> putinNums){
+    public Result<String> doOut(@RequestParam(value = "putinNums") String putinNums){
         log.info("确认出库,接口参数,{}",putinNums);
         Result<String> result = new Result();
         try {
-            boardOutSerice.doOut(putinNums);
+            boardOutSerice.doOut(Arrays.asList(putinNums.split(",")));
+        }catch (BizException e){
+            e.printStackTrace();
+            result = result.fail(e.getCodeMsg());
+            log.error("确认出库，业务异常:{}",e.getMessage(),e);
         }catch (Exception e){
             e.printStackTrace();
             result = result.fail(CodeMsg.SERVER_ERROR);

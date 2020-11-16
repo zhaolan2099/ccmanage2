@@ -12,7 +12,7 @@ public interface BoardPutinService {
      * 确认入库将所有入库中的电路板打包成一个，并修改状态为已入库
      * @param sns))
      */
-    void doPutin(List<String> sns) throws BizException;
+    String doPutin(List<String> sns) throws BizException;
 
     /**
      *  通过扫描SN号，将测试完成的电路板修改为入库中

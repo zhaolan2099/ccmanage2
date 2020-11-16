@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -64,11 +65,13 @@ public class BoardPutinController {
 
     @ApiOperation("确认入库")
     @GetMapping(value = "doPutin")
-    public Result<String> doPutin(@RequestParam(value = "sns") List<String> sns){
-        log.info("确认入库,接口参数,{}",sns.toString());
+    public Result<String> doPutin(@RequestParam(value = "sns") String sns){
+        log.info("确认入库,接口参数,{}",sns);
         Result<String> result = new Result();
+        String putinNum;
         try {
-            putinService.doPutin(sns);
+            putinNum = putinService.doPutin(Arrays.asList(sns.split(",")));
+            result = result.success(putinNum);
         } catch (BizException e){
             e.printStackTrace();
             result = result.fail(e.getCodeMsg());
