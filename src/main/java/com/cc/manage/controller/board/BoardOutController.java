@@ -85,11 +85,12 @@ public class BoardOutController {
     }
     @ApiOperation("确认出库")
     @GetMapping(value = "doOut")
-    public Result<String> doOut(@RequestParam(value = "putinNums") String putinNums){
+    public Result<String> doOut(@RequestParam(value = "putinNums") List<String> putinNums){
         log.info("确认出库,接口参数,{}",putinNums);
         Result<String> result = new Result();
         try {
-            boardOutSerice.doOut(Arrays.asList(putinNums.split(",")));
+            boardOutSerice.doOut(putinNums);
+            result = result.success();
         }catch (BizException e){
             e.printStackTrace();
             result = result.fail(e.getCodeMsg());
