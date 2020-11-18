@@ -69,7 +69,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         try {
             jsonObject= JSON.parseObject(msg);
         }catch (Exception e){
-            throw new BizException(0,"JSON format error");
+            throw new BizException(0,"JSON格式错误");
         }
         String step = "";
         if(jsonObject.get(Constant.TEST_STEP) != null){
@@ -83,7 +83,7 @@ public class SerialPortServiceImpl implements SerialPortService {
             case Constant.TEST_STEP_WRITE_SN_RESULT:
                 return handleWriteSNResult(jsonObject);
             default:
-                throw new BizException(0,"The request parameter is incorrect");
+                throw new BizException(0,"请求参数不正确");
         }
     }
 
@@ -103,7 +103,8 @@ public class SerialPortServiceImpl implements SerialPortService {
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
-            throw new BizException(0,"test error");
+            log.info("{}电路板检测失败不做处理",board.getMac()+board.getMcuId());
+            throw new BizException(0,"电路板检测失败不做处理");
         }
         if(!StringUtils.isEmpty(board.getMac())){
             msg.put(Constant.MAC_ADDR,board.getMac());
@@ -191,14 +192,14 @@ public class SerialPortServiceImpl implements SerialPortService {
         query.setMcu(mcuId);
         SnLog snLogDb = snLogMappr.get(query);
         if(snLogDb == null){
-            throw  new BizException(0,"no sn record");
+            throw  new BizException(0,"没有SN记录");
         }
 
         if(!snWriteResult.equals(Constant.SUCCESS)){
             //SN写入失败
             snLogDb.setStatus(Constant.SN_WRITE_RES_0);
             snLogMappr.updateByPrimaryKeySelective(snLogDb);
-            throw new BizException(0,"SN write faild");
+            throw new BizException(0,"SN写入失败s");
         }
         //SN写入成功
         snLogDb.setStatus(Constant.SN_WRITE_RES_1);

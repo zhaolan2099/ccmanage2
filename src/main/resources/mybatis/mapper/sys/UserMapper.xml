@@ -206,7 +206,7 @@
   <select id="checkLoginName" resultType="int" parameterType="com.cc.manage.domain.sys.User">
     select count(1) from user where login_name = #{loginName}
     <if test="id != null">
-      and id  != id
+      and id  != #{id}
     </if>
   </select>
   <select id="getRoleByUserId" resultType="com.cc.manage.domain.sys.Role">

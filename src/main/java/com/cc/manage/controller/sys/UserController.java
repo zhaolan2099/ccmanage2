@@ -250,7 +250,7 @@ public class UserController {
             }
         }catch (RedisServerException e) {
             jsonObject.put("msg", "不能连接到redis..");
-            jsonObject.put("code", "0");
+            jsonObject.put("code", 0);
         } catch (IncorrectCredentialsException e) {
             jsonObject.put("msg", "密码错误");
             jsonObject.put("code", 0);

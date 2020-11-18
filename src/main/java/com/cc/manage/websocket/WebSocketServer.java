@@ -22,7 +22,8 @@ public class WebSocketServer {
     private static final AtomicInteger OnlineCount = new AtomicInteger(0);
     // concurrent包的线程安全Set，用来存放每个客户端对应的Session对象。
 //    private static CopyOnWriteArraySet<Session> SessionSet = new CopyOnWriteArraySet<Session>();
-    private static Map<String,Session> SessionSet = new HashMap<>();
+    private static Map<String,Session> sessionSet = new HashMap<>();
+    private static Map<String,Session> sessionSetLoginName = new HashMap<>();
 
 
     /**
@@ -30,13 +31,15 @@ public class WebSocketServer {
      */
     @OnOpen
     public void onOpen(Session session) {
-        SessionSet.put(session.getQueryString().split("=")[1],session);
+        String loginName = session.getUserPrincipal().getName();
+        sessionSet.put(session.getQueryString().split("=")[1],session);
+        sessionSetLoginName.put(loginName,session);
         int cnt = OnlineCount.incrementAndGet(); // 在线数加1
         log.info("有连接加入，当前连接数为：{},sessionId为:{}", cnt,session.getId());
         Result result = new Result();
         result.setCode(3);
         result.setMsg("连接成功");
-        SendMessage(session, JSON.toJSONString(result) );
+        sendMessage(session, JSON.toJSONString(result) );
     }
 
     /**
@@ -45,7 +48,9 @@ public class WebSocketServer {
     @OnClose
     public void onClose(Session session) {
         String sessionId = session.getQueryString().split("=")[1];
-        SessionSet.remove(sessionId);
+        String loginName = session.getUserPrincipal().getName();
+        sessionSet.remove(sessionId);
+        sessionSetLoginName.remove(loginName);
         int cnt = OnlineCount.decrementAndGet();
         log.info("有连接关闭，当前连接数为：{}", cnt);
     }
@@ -78,7 +83,7 @@ public class WebSocketServer {
      * @param session
      * @param message
      */
-    public static void SendMessage(Session session, String message) {
+    public static void sendMessage(Session session, String message) {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
@@ -92,11 +97,11 @@ public class WebSocketServer {
      * @param message
      * @throws IOException
      */
-    public static void BroadCastInfo(String message) throws IOException {
-        for (String key : SessionSet.keySet()) {
-            Session session = SessionSet.get(key);
+    public static void broadCastInfo(String message) throws IOException {
+        for (String key : sessionSet.keySet()) {
+            Session session = sessionSet.get(key);
             if(session.isOpen()){
-                SendMessage(session, message);
+                sendMessage(session, message);
             }
         }
     }
@@ -107,11 +112,26 @@ public class WebSocketServer {
      * @param message
      * @throws IOException
      */
-    public static void SendMessage(String message,String sessionId) {
+    public static void sendMessage(String message,String sessionId) {
         Session session = null;
-        session = SessionSet.get(sessionId);
+        session = sessionSet.get(sessionId);
         if(session !=  null){
-            SendMessage(session, message);
+            sendMessage(session, message);
+        }
+    }
+
+
+    /**
+     * 根据登录名发送
+     * @param loginName
+     * @param message
+     * @throws IOException
+     */
+    public static void sendMessageForLoginName(String message,String loginName) {
+        Session session = null;
+        session = sessionSetLoginName.get(loginName);
+        if(session !=  null){
+            sendMessage(session, message);
         }
     }
 }

@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.cc.manage.common.CodeMsg;
 import com.cc.manage.common.Result;
+import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.service.serialport.SerialPortService;
+import com.cc.manage.utils.UserUtil;
 import com.cc.manage.websocket.WebSocketServer;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -35,20 +37,25 @@ public class SerialPortController {
      */
     @PostMapping(value = "receiveMsg")
     public Result receiveMsg(@RequestBody String msg){
+
         log.info("收到客户端发送的数据,{}",msg);
         Subject subject = SecurityUtils.getSubject();
         Result result = new Result();
         JSONObject jsonObject = new JSONObject();
         CodeMsg codeMsg = CodeMsg.SUCCESS;
+        LoginUser user = new LoginUser();
         try {
+            user = UserUtil.getCurrentUser();
             jsonObject = serialPortService.parseTestResult(msg);
             result = result.success();
-            WebSocketServer.SendMessage(JSON.toJSONString(result), (String) subject.getSession().getId());
+//            WebSocketServer.SendMessage(JSON.toJSONString(result), (String) subject.getSession().getId());
+            WebSocketServer.sendMessageForLoginName(JSON.toJSONString(result), user.getLoginName());
         }catch (BizException e){
             e.printStackTrace();
             result = result.fail(e.getCodeMsg());
-            WebSocketServer.SendMessage(JSON.toJSONString(result),
-                    (String) subject.getSession().getId());
+//            WebSocketServer.SendMessage(JSON.toJSONString(result),
+//                    (String) subject.getSession().getId());
+            WebSocketServer.sendMessageForLoginName(JSON.toJSONString(result), user.getLoginName());
             log.info("处理数据，业务异常:{}",e.getCodeMsg());
             codeMsg = e.getCodeMsg();
         }catch (Exception e){
