@@ -22,9 +22,8 @@ public class WebSocketServer {
     private static final AtomicInteger OnlineCount = new AtomicInteger(0);
     // concurrent包的线程安全Set，用来存放每个客户端对应的Session对象。
 //    private static CopyOnWriteArraySet<Session> SessionSet = new CopyOnWriteArraySet<Session>();
+    private static Map<String,Map<String,Session>> sessionMap = new HashMap<>();
     private static Map<String,Session> sessionSet = new HashMap<>();
-    private static Map<String,Session> sessionSetLoginName = new HashMap<>();
-
 
     /**
      * 连接建立成功调用的方法
@@ -32,8 +31,14 @@ public class WebSocketServer {
     @OnOpen
     public void onOpen(Session session) {
         String loginName = session.getUserPrincipal().getName();
+
+        Map<String,Session> map = sessionMap.get(loginName);
+        if(map == null){
+            map = new HashMap<>();
+        }
         sessionSet.put(session.getQueryString().split("=")[1],session);
-        sessionSetLoginName.put(loginName,session);
+        map.put(session.getQueryString().split("=")[1],session);
+        sessionMap.put(loginName,map);
         int cnt = OnlineCount.incrementAndGet(); // 在线数加1
         log.info("有连接加入，当前连接数为：{},sessionId为:{}", cnt,session.getId());
         Result result = new Result();
@@ -49,8 +54,12 @@ public class WebSocketServer {
     public void onClose(Session session) {
         String sessionId = session.getQueryString().split("=")[1];
         String loginName = session.getUserPrincipal().getName();
+        Map<String,Session> map = sessionMap.get(loginName);
+        if(map != null){
+            map.remove(sessionId);
+        }
         sessionSet.remove(sessionId);
-        sessionSetLoginName.remove(loginName);
+        sessionMap.put(loginName,map);
         int cnt = OnlineCount.decrementAndGet();
         log.info("有连接关闭，当前连接数为：{}", cnt);
     }
@@ -98,8 +107,9 @@ public class WebSocketServer {
      * @throws IOException
      */
     public static void broadCastInfo(String message) throws IOException {
-        for (String key : sessionSet.keySet()) {
-            Session session = sessionSet.get(key);
+        for (String key:sessionSet.keySet()){
+            Map<String,Session> map  = sessionMap.get(key);
+            Session session = map.get(key);
             if(session.isOpen()){
                 sendMessage(session, message);
             }
@@ -128,10 +138,14 @@ public class WebSocketServer {
      * @throws IOException
      */
     public static void sendMessageForLoginName(String message,String loginName) {
-        Session session = null;
-        session = sessionSetLoginName.get(loginName);
-        if(session !=  null){
-            sendMessage(session, message);
+        Map<String,Session> map  = sessionMap.get(loginName);
+        if(map !=  null){
+            for (String key : map.keySet()){
+                Session session = map.get(key);
+                if(session != null){
+                    sendMessage(session, message);
+                }
+            }
         }
     }
 }
