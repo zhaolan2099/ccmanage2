@@ -106,6 +106,7 @@
           a.id = c.menu_id
       AND b.role_id = c.role_id
       AND b.user_id = #{userId}
+      order by a.seq
     </select>
     <select id="selectByLevel" resultType="com.cc.manage.domain.sys.Menu">
       select * from menu where `level` = #{level}
