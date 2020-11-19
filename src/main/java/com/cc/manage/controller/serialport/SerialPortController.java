@@ -36,7 +36,7 @@ public class SerialPortController {
      * @param msg 消息内容
      */
     @PostMapping(value = "receiveMsg")
-    public Result receiveMsg(@RequestBody String msg){
+    public String receiveMsg(@RequestBody String msg){
 
         log.info("收到客户端发送的数据,{}",msg);
         Subject subject = SecurityUtils.getSubject();
@@ -63,7 +63,8 @@ public class SerialPortController {
             log.info("处理数据，系统异常:{}",e.getMessage());
             codeMsg = CodeMsg.SERVER_ERROR;
         }
-        return new Result(codeMsg,jsonObject);
+        result = new Result(codeMsg,jsonObject);
+        return JSON.toJSONString(result);
     }
 
 }

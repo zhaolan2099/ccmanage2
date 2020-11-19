@@ -71,6 +71,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         }catch (Exception e){
             throw new BizException(0,"JSON格式错误");
         }
+
         String step = "";
         if(jsonObject.get(Constant.TEST_STEP) != null){
             step = (String) jsonObject.get(Constant.TEST_STEP);

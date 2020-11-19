@@ -53,7 +53,7 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/vcode", "anon");
         filterChainDefinitionMap.put("/user/login", "anon");
         filterChainDefinitionMap.put("/user/clientLogin", "anon");
-        filterChainDefinitionMap.put("/cc/**", "anon");
+//        filterChainDefinitionMap.put("/cc/**", "anon");
         //需放行swagger
         filterChainDefinitionMap.put("/swagger-ui.html", "anon");
         filterChainDefinitionMap.put("/swagger-resources/**", "anon");

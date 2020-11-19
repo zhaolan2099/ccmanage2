@@ -17,7 +17,7 @@ public class CodeMsg {
     public static CodeMsg FAIL = new CodeMsg(0, "fail");
     public static CodeMsg SUCCESS = new CodeMsg(1, "success");
     public static CodeMsg SERVER_ERROR = new CodeMsg(500001, "server error");
-    public static CodeMsg SESSION_EXPIRED = new CodeMsg(500005, "登录过期，请重新登录");
+    public static CodeMsg SESSION_EXPIRED = new CodeMsg(500005, "登录过期请重新登录");
 
     public static CodeMsg PARAMS_INVALID_DETAIL = new CodeMsg(100004, "参数错误：%s", true);
     public static CodeMsg PARAMS_BINDING_ERROR = new CodeMsg(100005, "参数绑定错误");
