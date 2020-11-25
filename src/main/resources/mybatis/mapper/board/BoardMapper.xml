@@ -16,10 +16,11 @@
     <result column="out_time" jdbcType="TIMESTAMP" property="outTime" />
     <result column="out_user" jdbcType="BIGINT" property="outUser" />
     <result column="out_num" jdbcType="VARCHAR" property="outNum" />
+    <result column="software_version" jdbcType="VARCHAR" property="softWareVersion" />
   </resultMap>
   <sql id="Base_Column_List">
     id, sn, mac, mcu_id,board_type, org_id, test_status, create_time, create_user, putin_time,
-    putin_user,out_time,out_user,out_num,esn
+    putin_user,out_time,out_user,out_num,software_version
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
@@ -40,12 +41,12 @@
     <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
     insert into board (sn, mac,mcu_id, board_type,
       org_id, test_status, create_time, 
-      create_user, putin_time, putin_user,test_time,test_user,esn
+      create_user, putin_time, putin_user,test_time,test_user,software_version
       )
     values (#{sn,jdbcType=VARCHAR}, #{mac,jdbcType=VARCHAR},#{mcuId}, #{boardType,jdbcType=VARCHAR},
       #{orgId,jdbcType=BIGINT}, #{testStatus,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{createUser,jdbcType=BIGINT}, #{putinTime,jdbcType=TIMESTAMP}, #{putinUser,jdbcType=BIGINT}
-      , #{testTime,jdbcType=TIMESTAMP}, #{testUser,jdbcType=BIGINT},#{esn}
+      , #{testTime,jdbcType=TIMESTAMP}, #{testUser,jdbcType=BIGINT},#{softWareVersion}
       )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cc.manage.domain.board.Board" useGeneratedKeys="true">
@@ -142,19 +143,16 @@
             <if test="putinUser != null">
                 putin_user = #{putinUser,jdbcType=BIGINT},
             </if>
-            <if test="esn != null">
-                esn = #{esn},
-            </if>
         </set>
         <choose>
             <when test="mcuId != null and mcuId != ''">
-                where mcu_id = #{mcuId}
+                where mcu_id = #{mcuId} and board_type = #{boardType}
             </when>
             <when test="id != null">
                 where id = #{id}
             </when>
             <otherwise>
-                where mac = #{mac}
+                where mac = #{mac} and board_type = #{boardType}
             </otherwise>
         </choose>
     </update>
@@ -256,6 +254,7 @@
         <if test="mcuId != null and mcuId != ''">
             and mcu_id = #{mcuId}
         </if>
+        and board_type = #{boardType}
     </where>
   </select>
     <select id="selectTotal" resultType="java.lang.Integer">

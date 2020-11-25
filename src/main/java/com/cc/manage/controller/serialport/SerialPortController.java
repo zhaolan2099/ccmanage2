@@ -39,7 +39,6 @@ public class SerialPortController {
     public String receiveMsg(@RequestBody String msg){
 
         log.info("收到客户端发送的数据,{}",msg);
-        Subject subject = SecurityUtils.getSubject();
         Result result = new Result();
         JSONObject jsonObject = new JSONObject();
         CodeMsg codeMsg = CodeMsg.SUCCESS;

@@ -74,7 +74,13 @@ public class SerialPortServiceImpl implements SerialPortService {
 
         String step = "";
         if(jsonObject.get(Constant.TEST_STEP) != null){
-            step = (String) jsonObject.get(Constant.TEST_STEP);
+            step = jsonObject.getString(Constant.TEST_STEP);
+        }
+        String boardType = jsonObject.getString(Constant.BOARD_TYPE);
+        if(StringUtils.isEmpty(boardType)){
+            if(StringUtils.isEmpty(jsonObject.getString(Constant.BOARD_TYPE))){
+                throw  new BizException(0,"板类型不能为空");
+            };
         }
         switch (step){
             case Constant.TEST_STEP_BEGIN_TEST:
@@ -90,17 +96,17 @@ public class SerialPortServiceImpl implements SerialPortService {
 
     private JSONObject handleTest(JSONObject jsonObject) throws BizException{
         Board board = new Board();
-        String boardType = (String) jsonObject.get(Constant.BOARD_TYPE);
-        String esn = (String) jsonObject.get(Constant.ESN);
+        String boardType = jsonObject.getString(Constant.BOARD_TYPE);
+        String softwareVersion = jsonObject.getString(Constant.SOFTWARE_VERSION);
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
-            board.setMac((String) jsonObject.get(Constant.MAC_ADDR));
+            board.setMac(jsonObject.getString(Constant.MAC_ADDR));
         }
         if(jsonObject.get(Constant.MCU_ID)!= null){
-            board.setMcuId((String) jsonObject.get(Constant.MCU_ID));
+            board.setMcuId(jsonObject.getString(Constant.MCU_ID));
         }
-        String testResult = (String) jsonObject.get(Constant.TEST_RESULT);
+        String testResult =jsonObject.getString(Constant.TEST_RESULT);
         board.setBoardType(boardType);
-        board.setEsn(esn);
+        board.setSoftWareVersion(softwareVersion);
         Board fromDb = boardMapper.get(board);
         JSONObject msg = new JSONObject();
         if(!testResult.equals(Constant.SUCCESS)){
@@ -125,12 +131,13 @@ public class SerialPortServiceImpl implements SerialPortService {
     private JSONObject handleWriteSN(JSONObject jsonObject) throws BizException {
         Board board = new Board();
         JSONObject msg = new JSONObject();
+        board.setBoardType(jsonObject.getString(Constant.BOARD_TYPE));
         if(jsonObject.get(Constant.MAC_ADDR)!= null){
-            board.setMac((String) jsonObject.get(Constant.MAC_ADDR));
+            board.setMac( jsonObject.getString(Constant.MAC_ADDR));
             msg.put(Constant.MAC_ADDR,board.getMac());
         }
         if(jsonObject.get(Constant.MCU_ID)!= null){
-            board.setMcuId((String) jsonObject.get(Constant.MCU_ID));
+            board.setMcuId(jsonObject.getString(Constant.MCU_ID));
             msg.put(Constant.MCU_ID,board.getMcuId());
         }
         Board fromDb = boardMapper.get(board);
@@ -169,28 +176,30 @@ public class SerialPortServiceImpl implements SerialPortService {
             snLog.setCt(new Date());
             snLog.setSn(board.getSn());
             snLog.setStatus(Constant.SN_WRITE_RES_2);
+            snLog.setBoardType(board.getBoardType());
             snLogMappr.insertSelective(snLog);
             RedisUtil.set(snValue.get("key"),snValue.get("value"));
         }
         return msg;
     }
     private JSONObject handleWriteSNResult(JSONObject jsonObject) throws BizException {
-        String snWriteResult = (String) jsonObject.get(Constant.SN_WRITE_RESULT);
-        String esn = (String) jsonObject.get(Constant.ESN);
+        String snWriteResult = jsonObject.getString(Constant.SN_WRITE_RESULT);
         JSONObject msg = new JSONObject();
         String mac = "";
         String mcuId = "";
+        String boardType = jsonObject.getString(Constant.BOARD_TYPE);
         if(jsonObject.get(Constant.MAC_ADDR) != null){
-            mac = (String) jsonObject.get(Constant.MAC_ADDR);
+            mac =  jsonObject.getString(Constant.MAC_ADDR);
             msg.put(Constant.MAC_ADDR,mac);
         }
         if(jsonObject.get(Constant.MCU_ID) != null){
-            mcuId = (String) jsonObject.get(Constant.MCU_ID);
+            mcuId = jsonObject.getString(Constant.MCU_ID);
             msg.put(Constant.MCU_ID,mcuId);
         }
         SnLog query = new SnLog();
         query.setMac(mac);
         query.setMcu(mcuId);
+        query.setBoardType(boardType);
         SnLog snLogDb = snLogMappr.get(query);
         if(snLogDb == null){
             throw  new BizException(0,"没有SN记录");
@@ -207,6 +216,7 @@ public class SerialPortServiceImpl implements SerialPortService {
         snLogMappr.updateByPrimaryKeySelective(snLogDb);
         //将SN号入库
         Board board = new Board();
+        board.setBoardType(boardType);
         board.setSn(snLogDb.getSn());
         if(!StringUtils.isEmpty(mac)){
             board.setMac(mac);
@@ -214,7 +224,6 @@ public class SerialPortServiceImpl implements SerialPortService {
         if(!StringUtils.isEmpty(mcuId)){
             board.setMcuId(mcuId);
         }
-        board.setEsn(esn);
         boardService.updateByTest(board);
         msg.put(Constant.RESULT,"0");
         return msg;

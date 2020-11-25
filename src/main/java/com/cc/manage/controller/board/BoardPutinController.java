@@ -140,6 +140,30 @@ public class BoardPutinController {
         return result;
     }
 
+    @ApiOperation("开始入库2")
+    @GetMapping(value = "beginPutin2")
+    public Result<PageVo<List<Board>>> beginPutin2(){
+        log.info("开始入库2");
+        Result<PageVo<List<Board>>> result = new Result();
+        PageVo<Board> pageVo = new PageVo<>();
+        try {
+            List<Board> list = putinService.beginPutin();
+            pageVo.setObject(list);
+            pageVo.setTotal(list.size());
+            result = result.success(pageVo);
+        }catch (BizException e){
+            e.printStackTrace();
+            result = result.fail(e.getCodeMsg());
+            log.error("开始入库2，业务异常:{}",e.getMessage(),e);
+        }catch (Exception e){
+            e.printStackTrace();
+            result = result.fail(CodeMsg.SERVER_ERROR);
+            log.error("开始入库2，系统异常:{}",e.getMessage(),e);
+        }
+        log.info("开始入库2，响应参数:{}",result.toString());
+        return result;
+    }
+
     @ApiOperation("电路板入库列表")
     @GetMapping(value = "putinList")
     public Result<PageVo<Board>> putinList(BoardQuery query){

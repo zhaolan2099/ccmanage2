@@ -26,5 +26,7 @@ public class SnLog implements Serializable {
 
     private Date ct;
 
+    private String boardType;
+
     private static final long serialVersionUID = 1L;
 }

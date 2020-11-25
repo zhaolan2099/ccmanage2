@@ -46,6 +46,9 @@
       <if test="ct != null">
         ct,
       </if>
+      <if test="boardType != null">
+        board_type,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="mac != null">
@@ -62,6 +65,9 @@
       </if>
       <if test="ct != null">
         #{ct,jdbcType=TIMESTAMP},
+      </if>
+      <if test="boardType != null">
+        #{boardType,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -101,6 +107,7 @@
       <if test="mcu != null and mcu != ''">
         and mcu = #{mcu}
       </if>
+      and board_type = #{boardType}
     </where>
   </select>
 </mapper>
