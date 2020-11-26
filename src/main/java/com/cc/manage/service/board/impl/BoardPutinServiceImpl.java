@@ -74,7 +74,8 @@ public class BoardPutinServiceImpl implements BoardPutinService {
 
     @Override
     public Board getForPutIn(String sn)throws BizException {
-        Board board = boardMapper.getBySn(sn);
+        LoginUser user = UserUtil.getCurrentUser();
+        Board board = boardMapper.getBySnAndOrgId(sn,user.getOrgId());
         if(board == null){
             throw new BizException(0,"没有找到电路板相关信息,"+sn);
         }
@@ -84,7 +85,7 @@ public class BoardPutinServiceImpl implements BoardPutinService {
         if(Constant.STATUS_5.equals(board.getTestStatus())){
             throw new BizException(0,sn+"，已出库");
         }
-        LoginUser user = UserUtil.getCurrentUser();
+
 //        board.setPutinUser(user.getId());
 //        board.setPutinTime(new Date());
         board.setTestStatus(Constant.STATUS_3);
@@ -102,6 +103,12 @@ public class BoardPutinServiceImpl implements BoardPutinService {
 
     @Override
     public void cancel(List<String> sns) {
+        for (String sn : sns){
+            Board board = boardMapper.getBySn(sn);
+            if(board.getTestStatus().equals(Constant.STATUS_3)){
+                boardMapper.cancelPutin(sn);
+            }
+       }
         boardMapper.lastStepForPutin(sns,Constant.STATUS_2);
     }
 

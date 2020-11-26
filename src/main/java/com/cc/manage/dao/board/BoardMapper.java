@@ -43,8 +43,10 @@ public interface BoardMapper {
 
     void cancelPutin(String sn);
     Board getBySn(String sn);
+    Board getBySnAndOrgId(@Param("sn") String sn,@Param("orgId")Long orgId);
 
     List<Board> getByPutinNum(String putinNum);
+    List<Board> getByPutinNumAndOrgId(@Param("putinNum")String putinNum,@Param("orgId")Long orgId);
 
     /**
      * 出库中

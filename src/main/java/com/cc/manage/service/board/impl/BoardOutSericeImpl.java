@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
+import javax.jws.soap.SOAPBinding;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
@@ -51,7 +52,8 @@ public class BoardOutSericeImpl implements BoardOutSerice {
 
     @Override
     public List<Board> outIng2(String putinNum) throws BizException {
-        List<Board> list = boardMapper.getByPutinNum(putinNum);
+        LoginUser user = UserUtil.getCurrentUser();
+        List<Board> list = boardMapper.getByPutinNumAndOrgId(putinNum,user.getOrgId());
         if(list == null || list.size() == 0){
             throw new BizException(0,"没有找到相关入库记录");
         }
