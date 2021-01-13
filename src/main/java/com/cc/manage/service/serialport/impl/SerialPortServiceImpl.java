@@ -159,7 +159,9 @@ public class SerialPortServiceImpl implements SerialPortService {
             SnLog snLog = new SnLog();
             snLog.setMcu(board.getMcuId());
             snLog.setMac(board.getMac());
+            snLog.setBoardType(board.getBoardType());
             SnLog snLogDb = snLogMappr.get(snLog);
+
             //如果在日志里查找相关记录，证明之前写入失败了，现在仍然用之前的SN号
             if(snLogDb == null){
                 snValue = boardTestService.buildSn(board);
