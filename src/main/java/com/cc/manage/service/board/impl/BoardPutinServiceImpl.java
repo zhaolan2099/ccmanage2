@@ -74,6 +74,14 @@ public class BoardPutinServiceImpl implements BoardPutinService {
 
     @Override
     public Board getForPutIn(String sn)throws BizException {
+        if(StringUtils.isEmpty(sn)){
+            throw new BizException(0,"请扫描或输入SN号");
+        }
+        if(sn.contains("SN:")) {
+            sn  = sn.split("SN:")[1];
+        }else if(sn.contains("sn:")){
+            sn  = sn.split("sn:")[1];
+        }
         LoginUser user = UserUtil.getCurrentUser();
         Board board = boardMapper.getBySnAndOrgId(sn,user.getOrgId());
         if(board == null){
