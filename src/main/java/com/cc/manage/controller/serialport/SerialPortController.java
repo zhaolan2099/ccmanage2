@@ -63,6 +63,7 @@ public class SerialPortController {
             codeMsg = CodeMsg.SERVER_ERROR;
         }
         result = new Result(codeMsg,jsonObject);
+        log.info("返回给客户端数据,{}",result);
         return JSON.toJSONString(result);
     }
 

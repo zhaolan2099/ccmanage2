@@ -11,6 +11,8 @@ import com.cc.manage.utils.DateUtil;
 import com.cc.manage.utils.RedisUtil;
 import com.cc.manage.utils.UserUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.Jedis;
 
@@ -92,8 +94,15 @@ public class BoardOutSericeImpl implements BoardOutSerice {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void cancel(List<String> sns) {
-        boardMapper.lastStepForPutOut(sns,Constant.STATUS_4);
+        List<String> puintNums = boardMapper.lastStepForPutOut1(sns);
+        boardMapper.lastStepForPutOut2(sns,Constant.STATUS_4);
+        if(!CollectionUtils.isEmpty(puintNums)){
+            puintNums.forEach(o->{
+                boardMapper.cancelOut(o);
+            });
+        }
     }
 
     private Map<String,String> buildOutNum(String orgNum){

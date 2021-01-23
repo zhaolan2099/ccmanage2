@@ -70,5 +70,7 @@ public interface BoardMapper {
      * @param status
      */
     void  lastStepForPutin(@Param("sns") List<String> sns,@Param("status") String status);
-    void  lastStepForPutOut(@Param("sns") List<String> sns,@Param("status") String status);
+    List<String>  lastStepForPutOut1(@Param("sns") List<String> sns);
+    int  lastStepForPutOut2(@Param("sns") List<String> sns,@Param("status") String status);
+
 }

@@ -517,18 +517,20 @@
         WHERE
             a.putin_num = b.putin_num
     </update>
-    <update id="lastStepForPutOut">
-        UPDATE board a,
-        (
-            SELECT DISTINCT
-                out_num
-            FROM
-                board
-            WHERE
-                sn IN (<foreach collection="sns" separator="," item="sn">#{sn}</foreach>)
-                ) b
-                SET a.test_status = #{status},a.out_num = null,a.out_time = null,a.out_user = null
-            WHERE
-        a.out_num = b.out_num
+
+    <update id="lastStepForPutOut2">
+        UPDATE
+            board a
+        SET a.test_status = #{status},a.out_num = null,a.out_time = null,a.out_user = null
+        WHERE a.sn IN (<foreach collection="sns" separator="," item="sn">#{sn}</foreach>)
     </update>
+    <select id="lastStepForPutOut1" resultType="java.lang.String">
+        SELECT DISTINCT
+            out_num
+        FROM
+            board
+        WHERE
+            sn IN (<foreach collection="sns" separator="," item="sn">#{sn}</foreach>)
+     </select>
+
 </mapper>
