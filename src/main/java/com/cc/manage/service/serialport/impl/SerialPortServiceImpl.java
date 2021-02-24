@@ -2,44 +2,23 @@ package com.cc.manage.service.serialport.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.cc.manage.common.CodeMsg;
 import com.cc.manage.common.Constant;
-import com.cc.manage.common.Result;
-import com.cc.manage.conf.SystemConfig;
 import com.cc.manage.dao.board.BoardMapper;
 import com.cc.manage.dao.board.SnLogMappr;
 import com.cc.manage.domain.board.Board;
 import com.cc.manage.domain.board.SnLog;
-import com.cc.manage.domain.print.BarcodeParams;
-import com.cc.manage.domain.print.PrintParams;
-import com.cc.manage.domain.sys.LoginUser;
 import com.cc.manage.exception.BizException;
 import com.cc.manage.service.board.BoardService;
 import com.cc.manage.service.board.BoardTestService;
 import com.cc.manage.service.serialport.SerialPortService;
-import com.cc.manage.utils.DateUtil;
-import com.cc.manage.utils.HttpUtils;
 import com.cc.manage.utils.RedisUtil;
-import com.cc.manage.utils.UserUtil;
-import com.cc.manage.websocket.WebSocketServer;
-import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import redis.clients.jedis.Jedis;
-
 import javax.annotation.Resource;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
-
-import static com.cc.manage.common.Constant.MAC_ADDR;
-import static com.cc.manage.common.Constant.MCU_ID;
 import static org.springframework.transaction.annotation.Propagation.REQUIRED;
 
 /**
